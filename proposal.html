@@ -984,6 +984,7 @@
     <div class="editorial">
       <p>Every one of these false-positive classes asks the same kind of question. <em>Is this assistant content actually claiming an action right now?</em> An LLM-as-judge handles that natively. A regex cannot. <b>That's why the production version of this eval is the YAML-backed <span style="font-family: var(--mono);">ClassificationEvaluator</span> in section 03</b>, with regex used as a cheap pre-filter.</p>
       <p>The honest thing: the regex got me most of the way there with no LLM cost. The LLM-judge gets the rest, and the design above shows the seam.</p>
+      <p><b>And what the regex on its own structurally couldn't see.</b> The audit reads from the agent's <code>conversation_log</code> SQLite table. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, 100% tagged <code>source='dm'</code>. The agent's group chat (its primary user surface) and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 production traces. The SQL audit pipeline wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. <em>The new eval is the small win. Coverage of surfaces the SQL log can't see is the bigger one.</em></p>
     </div>
   </div>
 </section>

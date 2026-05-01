@@ -591,6 +591,15 @@
       <p>Those seven phantoms predated Luke's v50 layered defense. After v50 (Apr 24 onward), the audit found <em>zero</em> new phantoms in six days of production traffic.</p>
       <p>The full audit table, with the eleven flagged rows, ground truth, and false-positive class labels, lives in the proposal section. The script that produced it is in Luke's repo at <code>scripts/audit_conversations.py</code>. The Tool Bypass evaluator in the Phoenix fork is a productized version of the same logic, ready to run on traces flowing into the Phoenix workspace right now.</p>
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the audit didn't see, and only Phoenix surfaced</h3>
+
+    <div class="editorial">
+      <p>Side-by-side with Phoenix, the regex audit revealed something it could not have flagged on its own. The audit reads from Luke's <code>conversation_log</code> SQLite table. Pulled the live prod DB this evening: 175 historical rows across two weeks, <em>100% with <code>source='dm'</code></em>. Zero rows tagged as group chat. Zero from scheduled jobs.</p>
+      <p>Luke's primary social surface is a group chat where five users talk to Luke and to each other. None of that traffic was being written to <code>conversation_log</code>. Neither were the morning card, the AI sweep, or the weekly digest, all of which call the LLM on a timer.</p>
+      <p>In the first thirty minutes after Phoenix deployed, the workspace ingested <strong>38 production traces</strong>. Over the same window, <code>conversation_log</code> wrote <strong>zero</strong> new rows. The audit was scanning a third of the surface, confidently. Phoenix was scanning the whole thing the moment it turned on.</p>
+      <p>The eval primitive in the proposal is the small fix. The audit pipeline replacement is the bigger one. The same regex, the same evaluator, now covering the surfaces the SQL pipeline structurally couldn't see.</p>
+    </div>
   </div>
 </section>
 
