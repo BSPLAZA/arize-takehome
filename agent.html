@@ -577,6 +577,21 @@
       </div>
       <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
+
+    <div class="editorial">
+      <p>The eval primitive in the proposal isn't just a code artifact. After Phoenix deployed and prod traffic flowed in, I ran a regex-based Tool Bypass classifier against all <strong>57</strong> production spans in the project, then pushed the results back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric in the same row as Total Cost and Latency.</p>
+      <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms. Consistent with the regex audit's post-v50 result on DM-only traffic, now extended across every surface Phoenix sees.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">05-tool-bypass-eval-running.png</span>
+        <span>Phoenix project header with <code>tool_bypass μ 1.00</code> alongside Total Cost and Latency. Per-row annotations populate the Annotations column.</span>
+      </div>
+      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
   </div>
 </section>
 
