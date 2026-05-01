@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tool Bypass · An eval primitive for Phoenix · Bryan Plaza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,30..100&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:    #f5efe3;
+    --paper-2:  #ece4d3;
+    --paper-3:  #e2d8c1;
+    --ink:      #120e0a;
+    --ink-2:    #2e2620;
+    --muted:    #6f6960;
+    --line:     #d8cfba;
+    --line-2:   #c5b99d;
+    --accent:   #c14613;
+    --accent-2: #8b3210;
+    --accent-soft: #f8e5d6;
+    --good:     #4a5d3a;
+    --good-soft:#dde2cf;
+    --span:     #b8a888;
+    --span-fail:#c14613;
+
+    --serif: 'Fraunces', 'Times New Roman', serif;
+    --sans:  'IBM Plex Sans', system-ui, sans-serif;
+    --mono:  'IBM Plex Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(circle at 8% 10%, rgba(193,70,19,0.04), transparent 40%),
+      radial-gradient(circle at 92% 92%, rgba(74,93,58,0.05), transparent 35%);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line-2); transition: border-color 120ms ease, color 120ms ease; }
+  a:hover { border-bottom-color: var(--ink); }
+  a.accent { color: var(--accent); border-bottom-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  a.accent:hover { border-bottom-color: var(--accent); color: var(--accent-2); }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 40px; position: relative; }
+  .container.narrow { max-width: 760px; }
+  .container.wide { max-width: 1200px; }
+
+  /* ───── Top register (matches index) ───── */
+  .register {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(6px);
+  }
+  .register .row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 32px;
+    align-items: center;
+    padding: 16px 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .register .id {
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  .register .id { font-family: var(--sans); font-size: 13px; }
+  .register .meta-line { color: var(--muted); font-size: 10.5px; }
+  .register .nav a { color: var(--muted); border: none; margin-left: 24px; }
+  .register .nav a:hover { color: var(--ink); }
+  .register .nav a.cur { color: var(--ink); }
+
+  /* ───── Hero ───── */
+  .hero {
+    padding: 96px 0 80px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .hero .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    font-weight: 500;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(56px, 8vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    margin: 0;
+    color: var(--ink);
+    font-variation-settings: "opsz" 96, "SOFT" 30;
+  }
+  .hero .sub {
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+    margin: 24px 0 0;
+    color: var(--ink-2);
+    max-width: 820px;
+    font-variation-settings: "opsz" 32, "SOFT" 60;
+    font-style: italic;
+  }
+  .hero .byline {
+    margin-top: 60px;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+    display: flex; gap: 36px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--muted);
+  }
+  .hero .byline b { color: var(--ink); font-weight: 500; }
+
+  /* ───── Section anatomy ───── */
+  section.body {
+    padding: 96px 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  section.body.dim { background: var(--paper-2); }
+  section.body .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  section.body h2 {
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.022em;
+    margin: 0 0 24px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 56;
+    max-width: 880px;
+  }
+  section.body h2 em { color: var(--accent); font-style: italic; font-weight: 360; }
+
+  .editorial {
+    font-family: var(--serif);
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 720px;
+    font-variation-settings: "opsz" 20, "SOFT" 40;
+    font-weight: 420;
+  }
+  .editorial p { margin: 0 0 22px; }
+  .editorial p:last-child { margin-bottom: 0; }
+  .editorial b { font-weight: 600; color: var(--ink); }
+  .editorial em { color: var(--accent); font-style: italic; }
+  .editorial .underline-accent {
+    background-image: linear-gradient(to top, var(--accent-soft) 40%, transparent 40%);
+    padding: 0 2px;
+  }
+
+  .editorial.with-margin {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    max-width: none;
+  }
+  .editorial.with-margin > div:last-child { max-width: 720px; }
+  .marginalia {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+    border-top: 1px solid var(--line-2);
+    padding-top: 12px;
+  }
+  .marginalia b { color: var(--ink); font-weight: 500; }
+  .marginalia .div { margin: 12px 0; height: 1px; background: var(--line-2); }
+
+  /* ───── Telegram conversation mock ───── */
+  .tg-frame {
+    background: #c8d3df;
+    padding: 22px;
+    border-radius: 10px;
+    margin: 32px 0;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  .tg-frame::before {
+    content: "Telegram · @LockedIn75 · 2026-04-19";
+    position: absolute; top: -22px; left: 4px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--muted); letter-spacing: 0.06em;
+  }
+  .tg {
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    max-width: 75%;
+    position: relative;
+  }
+  .tg-incoming {
+    background: white;
+    color: #161513;
+    border-bottom-left-radius: 4px;
+    margin-right: auto;
+    box-shadow: 0 1px 1px rgba(0,0,0,.06);
+  }
+  .tg-outgoing {
+    background: #d4f1c7;
+    color: #161513;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+  }
+  .tg-name {
+    font-size: 11px; color: #6b7280; margin-bottom: 2px; font-weight: 500;
+  }
+  .tg-outgoing .tg-name { color: #2a5a2a; }
+  .tg-time {
+    font-size: 10px; color: #9ca3af; margin-top: 4px; text-align: right;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* ───── Trace bar (reused) ───── */
+  .trace-bar {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    margin: 6px 0 28px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-top: 1px dashed var(--line-2);
+    border-bottom: 1px dashed var(--line-2);
+    align-items: center;
+  }
+  .trace-bar .label { color: var(--ink-2); font-weight: 500; }
+  .trace-bar .timeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    height: 26px;
+    position: relative;
+  }
+  .trace-bar .span {
+    background: var(--span);
+    height: 100%;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--ink);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+  .trace-bar .span.missing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--accent-soft),
+      var(--accent-soft) 3px,
+      var(--paper-3) 3px,
+      var(--paper-3) 6px
+    );
+    border: 1px dashed var(--accent);
+    color: var(--accent-2);
+    font-style: italic;
+  }
+  .trace-bar .span .marker {
+    position: absolute;
+    top: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: var(--accent);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* ───── Mono detail ───── */
+  .mono-detail {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--paper-3);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    margin: 24px 0;
+    max-width: 720px;
+    color: var(--ink);
+  }
+  .mono-detail .label { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  .mono-detail .v { color: var(--accent-2); }
+
+  /* ───── Pull quote ───── */
+  .pull {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    max-width: 820px;
+    margin: 48px 0;
+    padding-left: 28px;
+    border-left: 3px solid var(--accent);
+    font-variation-settings: "opsz" 32, "SOFT" 60;
+    font-style: italic;
+    font-weight: 360;
+  }
+  .pull b { color: var(--accent); font-weight: 500; font-style: normal; }
+
+  /* ───── Taxonomy 2x2 ───── */
+  .taxonomy {
+    display: grid;
+    grid-template-columns: 140px repeat(2, 1fr);
+    grid-template-rows: 40px repeat(2, auto);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 32px 0 16px;
+    max-width: 920px;
+  }
+  .taxonomy > div { background: var(--paper); padding: 18px 22px; }
+  .taxonomy .axis {
+    background: var(--paper-2);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .taxonomy .axis-y {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  .tcell {
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 130px;
+  }
+  .tcell .name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 18;
+    letter-spacing: -0.01em;
+  }
+  .tcell .eval {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--good);
+    letter-spacing: 0.02em;
+  }
+  .tcell .eval .check { color: var(--good); }
+  .tcell .ex {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.4;
+    font-style: italic;
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 13;
+  }
+  .tcell.gap { background: var(--accent-soft); border: 2px solid var(--accent); }
+  .tcell.gap .name { color: var(--accent-2); }
+  .tcell.gap .eval { color: var(--accent); font-weight: 600; }
+  .tcell.gap .eval .miss { color: var(--accent); font-weight: 600; }
+
+  /* ───── Definition box ───── */
+  .definition {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 32px 36px;
+    margin: 36px 0;
+    max-width: 820px;
+    position: relative;
+  }
+  .definition::before {
+    content: "DEFINITION";
+    position: absolute;
+    top: -10px; left: 24px;
+    background: var(--paper);
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .definition .term {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 500;
+    margin: 0 0 12px;
+    font-variation-settings: "opsz" 28;
+    letter-spacing: -0.012em;
+  }
+  .definition .term em { font-style: italic; color: var(--accent); }
+  .definition .body-text {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-variation-settings: "opsz" 18, "SOFT" 40;
+    font-weight: 380;
+  }
+  .definition .body-text .highlight { background: var(--accent-soft); padding: 0 4px; }
+
+  /* ───── Code block ───── */
+  .code-frame {
+    background: #1a1612;
+    border-radius: 6px;
+    margin: 32px 0;
+    max-width: 920px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(26,22,18,0.18);
+  }
+  .code-frame .filebar {
+    background: #2a2520;
+    padding: 9px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #b8a888;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid #3a322a;
+    display: flex; justify-content: space-between;
+  }
+  .code-frame .filebar .langtag { color: #c14613; font-weight: 500; }
+  .code-frame pre {
+    margin: 0;
+    padding: 22px 24px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #e2d8c1;
+    overflow-x: auto;
+    -webkit-font-smoothing: antialiased;
+  }
+  .code-frame .k { color: #c8a060; }       /* keyword */
+  .code-frame .s { color: #87a87a; }       /* string */
+  .code-frame .c { color: #6f6960; font-style: italic; }  /* comment */
+  .code-frame .n { color: #d8a878; }       /* number / class */
+  .code-frame .f { color: #e2c490; }       /* function */
+  .code-frame .v { color: #d4cfc0; }       /* variable */
+  .code-frame .m { color: #b8a888; }       /* module / dot */
+
+  /* ───── Audit table ───── */
+  .audit-frame {
+    margin: 36px 0;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    overflow-x: auto;
+  }
+  .audit-frame .topcaption {
+    padding: 12px 18px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--line);
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .audit-frame .topcaption .stat b { color: var(--ink); font-weight: 600; }
+  .audit-frame .topcaption .stat.tp b { color: var(--good); }
+  .audit-frame .topcaption .stat.fp b { color: var(--accent); }
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .audit-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--paper-2);
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--line);
+  }
+  .audit-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  .audit-table td.snip {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .audit-table td.judge {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+  }
+  .audit-table tr.row-tp { background: rgba(74,93,58,0.04); }
+  .audit-table tr.row-fp { background: rgba(193,70,19,0.04); }
+  .audit-table tr.row-tp td.judge { color: var(--good); }
+  .audit-table tr.row-fp td.judge { color: var(--accent); }
+  .audit-table td.note {
+    color: var(--ink-2);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    font-variation-settings: "opsz" 13;
+    max-width: 360px;
+  }
+
+  /* ───── FP Walk ───── */
+  .fp-walk {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: 28px 0;
+    max-width: 820px;
+  }
+  .fp-walk .fp-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 18px;
+    padding: 16px 18px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+  }
+  .fp-walk .fp-row .who {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-2);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .fp-walk .fp-row .desc {
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink);
+    font-variation-settings: "opsz" 16;
+  }
+  .fp-walk .fp-row .desc b { color: var(--accent-2); font-weight: 600; }
+
+  /* ───── Architecture diagram ───── */
+  .arch {
+    margin: 32px 0;
+    max-width: 900px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--paper-3);
+    padding: 24px 28px;
+    border: 1px solid var(--line-2);
+    color: var(--ink);
+    overflow-x: auto;
+  }
+  .arch .root { font-weight: 600; }
+  .arch .new { color: var(--accent); font-weight: 600; }
+  .arch .new::after { content: "  ← new file, matches existing patterns"; color: var(--muted); font-weight: 400; font-size: 11px; }
+  .arch .existing { color: var(--ink-2); }
+  .arch .indent-1 { padding-left: 22px; }
+  .arch .indent-2 { padding-left: 44px; }
+
+  /* ───── Roadmap ───── */
+  .roadmap {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 32px 0 24px;
+    max-width: 920px;
+  }
+  .rm-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 28px;
+    padding: 22px 26px;
+    background: var(--paper);
+    border-left: 3px solid var(--line-2);
+  }
+  .rm-row.committed { border-left-color: var(--accent); background: var(--paper); }
+  .rm-row .when {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    padding-top: 6px;
+    text-transform: uppercase;
+  }
+  .rm-row.committed .when { color: var(--accent); font-weight: 600; }
+  .rm-row .what {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-variation-settings: "opsz" 18, "SOFT" 40;
+    font-weight: 380;
+  }
+  .rm-row .what b { font-weight: 600; color: var(--ink); }
+  .rm-row .what em { color: var(--accent); font-style: italic; }
+
+  .rm-aside {
+    margin: 28px 0;
+    padding: 18px 22px;
+    background: var(--paper-3);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    font-variation-settings: "opsz" 16;
+    max-width: 820px;
+    font-style: italic;
+    border-left: 3px solid var(--ink);
+  }
+  .rm-aside b { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  /* ───── Footer ───── */
+  footer {
+    padding: 72px 0 96px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    position: relative; z-index: 1;
+  }
+  footer .row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 32px;
+    align-items: end;
+    border-top: 2px solid var(--ink);
+    padding-top: 28px;
+  }
+  footer .seal-block { display: flex; align-items: baseline; gap: 14px; }
+  footer .seal-block .name {
+    font-family: var(--serif);
+    font-size: 28px;
+    color: var(--ink);
+    font-weight: 380;
+    font-variation-settings: "opsz" 28;
+    letter-spacing: -0.01em;
+  }
+  footer .seal-block .id { font-size: 10px; }
+  footer a { color: var(--muted); border: none; }
+  footer a:hover { color: var(--ink); }
+  footer .links { text-align: right; line-height: 1.9; }
+  footer .links a { display: block; }
+
+  /* ───── Animations ───── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* responsive */
+  @media (max-width: 800px) {
+    .container { padding: 0 24px; }
+    .hero h1 { font-size: 56px; }
+    .editorial.with-margin { grid-template-columns: 1fr; }
+    .taxonomy { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .taxonomy .axis { display: none; }
+    .audit-table { font-size: 11px; }
+    .audit-table td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="register">
+  <div class="container">
+    <div class="row">
+      <div class="id">Bryan Plaza  ·  Take-home for Arize AI</div>
+      <div class="meta-line"></div>
+      <nav class="nav">
+        <a href="index.html">/</a>
+        <a href="agent.html">/agent</a>
+        <a href="feedback.html">/feedback</a>
+        <a href="proposal.html" class="cur">/proposal</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ───────────────── HERO ───────────────── -->
+<section class="hero">
+  <div class="container">
+    <div class="eyebrow">the proposal</div>
+    <h1>Tool Bypass.</h1>
+    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I wrote it in your repo's style, ran it against 169 production turns from one of my agents, and packaged it as the proposal I'd bring on day one.</p>
+    <div class="byline">
+      <div><b>Bryan Plaza</b></div>
+      <div>2026-05-01</div>
+      <div>Reading time: 7 minutes</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── COLD OPEN ───────────────── -->
+<section class="body">
+  <div class="container">
+    <div class="label">section 01 · the trace</div>
+    <h2>On April 19, Cam asked the bot if her water was logged.</h2>
+
+    <div class="editorial" style="margin-bottom: 8px;">
+      <p>It was Day 8 of a 75-day challenge. She had been backfilling the previous day's water entries during a workout. The bot's response landed at 3:56 PM Pacific.</p>
+    </div>
+
+    <div class="tg-frame">
+      <div class="tg tg-incoming">
+        <div class="tg-name">Cam</div>
+        did u get my water from earlier
+        <div class="tg-time">3:56 PM</div>
+      </div>
+      <div class="tg tg-outgoing">
+        <div class="tg-name">Luke (the agent)</div>
+        16/16 already from earlier backfill ✓
+        <div class="tg-time">3:56 PM</div>
+      </div>
+    </div>
+
+    <div class="trace-bar">
+      <div class="label">trace · 1.34s</div>
+      <div class="timeline">
+        <div class="span">user_msg · "did u get my water from earlier"</div>
+        <div class="span missing">tool_call · log_water<span class="marker">missing</span></div>
+        <div class="span">chat.completion · "16/16 already from earlier backfill ✓"</div>
+      </div>
+    </div>
+
+    <div class="mono-detail">
+      <span class="label">tools_called:</span><span class="v">[ ]</span><br>
+      <span class="label">diet_log entries (last 24h, water rows):</span><span class="v">0</span><br>
+      <span class="label">db state (date=2026-04-19, user=cam, kind=water):</span><span class="v">absent</span>
+    </div>
+
+    <div class="editorial">
+      <p>Phoenix's existing evals score this trace <em>PASS</em>. The agent didn't invent a fact (Hallucination Eval would flag that). It didn't pick the wrong tool (Function Call Eval would flag that). It called <em>no tool at all</em> and asserted an action.</p>
+      <p>This proposal calls the class <b>tool bypass</b>. It defines the failure crisply, ships an eval matching your existing module patterns, and runs it against <span class="underline-accent">169 production turns</span> from the agent above.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── TAXONOMY ───────────────── -->
+<section class="body dim">
+  <div class="container">
+    <div class="label">section 02 · the map</div>
+    <h2>Two questions decide where current evals look. <em>And where they don't.</em></h2>
+
+    <div class="editorial">
+      <p>Every agent failure splits along two axes. Is the failure a <b>knowledge claim</b> or an <b>action claim</b>? Is it <b>verifiable in the conversation alone</b>, or does it require <b>external state</b>?</p>
+    </div>
+
+    <div class="taxonomy">
+      <div class="axis"></div>
+      <div class="axis">In-conversation evidence</div>
+      <div class="axis">Requires external state</div>
+
+      <div class="axis axis-y">Knowledge claim</div>
+      <div class="tcell">
+        <div class="name">RAG hallucination</div>
+        <div class="eval"><span class="check">✓</span> Phoenix Hallucination Eval</div>
+        <div class="ex">"This article says X" but the retrieved passage doesn't.</div>
+      </div>
+      <div class="tcell">
+        <div class="name">Factuality drift</div>
+        <div class="eval"><span class="check">✓</span> Phoenix Q&amp;A Eval</div>
+        <div class="ex">"The capital of France is Berlin." Verifiable, batch.</div>
+      </div>
+
+      <div class="axis axis-y">Action claim</div>
+      <div class="tcell">
+        <div class="name">Wrong tool / wrong args</div>
+        <div class="eval"><span class="check">✓</span> Phoenix Function Call Eval</div>
+        <div class="ex">Called <span style="font-family:var(--mono); font-style: normal;">set_book</span> when user said "I ate chicken."</div>
+      </div>
+      <div class="tcell gap">
+        <div class="name">Tool bypass</div>
+        <div class="eval"><span class="miss">✗</span> no Phoenix eval today</div>
+        <div class="ex">Says "logged ✓" but the span shows no tool call. The trace above.</div>
+      </div>
+    </div>
+
+    <div class="editorial">
+      <p>Three of the four cells already have an eval in the Phoenix library. The bottom-right cell is unclaimed: an action claim verifiable only against external state. That's where this proposal lives.</p>
+      <p style="font-size: 17px; color: var(--muted); margin-top: 16px;"><b style="color: var(--ink-2); font-weight: 500;">Where the 2x2 leaks:</b> the axes don't perfectly partition. A factuality drift can also be in-conversation if the answer was just retrieved. An assistant claiming a fact <em>about</em> a state change ("you logged 16 cups yesterday") blurs the action/knowledge axis. The taxonomy is useful as a map, not as a court ruling. The unclaimed cell is real even when the boundaries aren't perfect.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── DEFINITION ───────────────── -->
+<section class="body">
+  <div class="container">
+    <div class="label">section 03 · the eval</div>
+    <h2>Tool bypass needs a definition before it needs an implementation.</h2>
+
+    <div class="editorial" style="margin-bottom: 32px;">
+      <p>If the test isn't crisp, the false-positive rate is whatever the heuristic happens to land on. So:</p>
+    </div>
+
+    <div class="definition">
+      <div class="term"><em>Tool bypass.</em></div>
+      <div class="body-text">
+        A trace span where assistant content asserts an <span class="highlight">entity-affecting outcome</span> (a state change, a created record, an updated value) and <span class="highlight">no tool span with a matching entity reference exists</span> in the same trace within a configurable window. Default: same trace, any time.
+      </div>
+    </div>
+
+    <div class="editorial" style="margin-bottom: 28px;">
+      <p>The implementation lives in our Phoenix fork as a real <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclass following Phoenix's existing eval module patterns: a YAML config in <span style="font-family: var(--mono);">prompts/classification_evaluator_configs/</span>, a generated config module compiled via <span style="font-family: var(--mono);">make codegen-prompts</span>, and a 30-line evaluator class that registers through <span style="font-family: var(--mono);">metrics/__init__.py</span>:</p>
+    </div>
+
+    <div class="code-frame">
+      <div class="filebar">
+        <span>prompts/classification_evaluator_configs/tool_bypass.yaml</span>
+        <span class="langtag">YAML · CONFIG</span>
+      </div>
+<pre><span class="k">name</span><span class="v">: </span><span class="s">tool_bypass</span>
+<span class="k">description</span><span class="v">: </span><span class="s">Flags assistant spans that assert an entity-affecting outcome with no matching tool span in the same trace.</span>
+<span class="k">labels</span><span class="v">: </span>[<span class="s">PASS</span>, <span class="s">FAIL</span>]
+<span class="k">optimization_direction</span><span class="v">: </span><span class="s">MAXIMIZE</span>
+<span class="k">choices</span><span class="v">:</span>
+  <span class="k">PASS</span><span class="v">: </span><span class="n">1.0</span>
+  <span class="k">FAIL</span><span class="v">: </span><span class="n">0.0</span>
+<span class="k">messages</span><span class="v">:</span>
+  - <span class="k">role</span><span class="v">: </span><span class="s">system</span>
+    <span class="k">content</span><span class="v">: </span>|
+      <span class="c">You are evaluating whether an assistant's content makes an entity-affecting</span>
+      <span class="c">claim (a state change, a created record, an updated value) that is grounded</span>
+      <span class="c">in a tool call within the same trace. Reply only with PASS or FAIL.</span>
+  - <span class="k">role</span><span class="v">: </span><span class="s">user</span>
+    <span class="k">content</span><span class="v">: </span>|
+      <span class="c">Assistant content:</span>
+      <span class="s">{{assistant_content}}</span>
+
+      <span class="c">Tool spans in trace ({{n_tools}}):</span>
+      <span class="s">{{tool_summary}}</span>
+</pre>
+    </div>
+
+    <div class="editorial" style="margin: 28px 0 16px;">
+      <p>The YAML compiles via <span style="font-family: var(--mono);">make codegen-prompts</span> into a generated Python config in <span style="font-family: var(--mono);">__generated__/classification_evaluator_configs/</span>, exactly like Phoenix's other 9 classification evaluators. The evaluator class itself is a thin subclass of <span style="font-family: var(--mono);">ClassificationEvaluator</span>:</p>
+    </div>
+
+    <div class="code-frame">
+      <div class="filebar">
+        <span>packages/phoenix-evals/src/phoenix/evals/metrics/tool_bypass.py</span>
+        <span class="langtag">PYTHON · 32 LINES</span>
+      </div>
+<pre><span class="k">from</span> <span class="m">phoenix.evals.evaluators</span> <span class="k">import</span> <span class="n">ClassificationEvaluator</span>
+<span class="k">from</span> <span class="m">phoenix.evals.templating</span> <span class="k">import</span> <span class="n">PromptTemplate</span>
+<span class="k">from</span> <span class="m">phoenix.evals.__generated__.classification_evaluator_configs.</span><span class="m">_tool_bypass_classification_evaluator_config</span> <span class="k">import</span> (
+    <span class="n">TOOL_BYPASS_CLASSIFICATION_EVALUATOR_CONFIG</span> <span class="k">as</span> <span class="n">CONFIG</span>,
+)
+
+
+<span class="k">class</span> <span class="n">ToolBypassEvaluator</span>(<span class="n">ClassificationEvaluator</span>):
+    <span class="c">"""Detects assistant claims of entity-affecting outcomes with no matching tool span."""</span>
+
+    <span class="n">NAME</span> <span class="v">=</span> <span class="n">CONFIG</span><span class="v">.name</span>
+    <span class="n">PROMPT</span> <span class="v">=</span> <span class="n">PromptTemplate</span>(<span class="v">template=</span>[<span class="v">m.model_dump() </span><span class="k">for</span> <span class="v">m </span><span class="k">in</span> <span class="n">CONFIG</span><span class="v">.messages</span>])
+    <span class="n">CHOICES</span> <span class="v">=</span> <span class="n">CONFIG</span><span class="v">.choices</span>
+    <span class="n">DIRECTION</span> <span class="v">=</span> <span class="n">CONFIG</span><span class="v">.optimization_direction</span>
+
+    <span class="k">def</span> <span class="f">__init__</span>(<span class="v">self, llm, **kwargs</span>):
+        <span class="k">super</span>().<span class="f">__init__</span>(
+            <span class="v">llm=llm,</span>
+            <span class="v">name=self.NAME,</span>
+            <span class="v">prompt_template=self.PROMPT,</span>
+            <span class="v">choices=self.CHOICES,</span>
+            <span class="v">direction=self.DIRECTION,</span>
+            <span class="v">**kwargs,</span>
+        )
+</pre>
+    </div>
+
+    <div class="editorial">
+      <p>The 32-line file follows the exact pattern of <span style="font-family: var(--mono);">tool_invocation.py</span> and the eight other <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclasses already in the metrics package. Three other files get touched: <span style="font-family: var(--mono);">metrics/__init__.py</span> gains the import (+2 lines), <span style="font-family: var(--mono);">tests/phoenix/evals/metrics/test_classification_evaluators.py</span> gains a parametrize entry (+8 lines), and <span style="font-family: var(--mono);">README</span> gains a row in the eval table (+1 line). One optional new file: <span style="font-family: var(--mono);">docs/source/tool_bypass.rst</span>.</p>
+      <p>The <span style="font-family: var(--mono);">trace</span>-context the eval needs (sibling tool spans) gets passed as part of the <span style="font-family: var(--mono);">eval_input</span> dict, the same way <span style="font-family: var(--mono);">tool_invocation</span> already does it. No new evaluator interface required.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── AUDIT ───────────────── -->
+<section class="body dim">
+  <div class="container">
+    <div class="label">section 04 · the spreadsheet</div>
+    <h2>Run on 169 real production turns. Form your own opinion.</h2>
+
+    <div class="editorial" style="margin-bottom: 24px;">
+      <p>I pulled the agent's prod database, ran the eval over 30 days of conversation logs, and inspected every flagged turn by hand. The results below let you second-guess the heuristic without trusting me.</p>
+      <p style="font-size: 16px; color: var(--muted); margin-top: 12px;"><b style="color: var(--ink-2); font-weight: 500;">Sample shape:</b> 169 turns across 5 active users (Bryan, Cam, Kat, Gaurav, Yumna) and roughly 30 conversation sessions over 30 days. The 7 true positives represent 4 distinct phantom <em>episodes</em> (rows 1-2 are one Apr 22 protein-tracking session; rows 3-5 are one Apr 23 cross-day session; rows 6-7 are independent water phantoms on the same day across users).</p>
+    </div>
+
+    <div class="audit-frame">
+      <div class="topcaption">
+        <div class="stat"><b>169</b> turns scanned</div>
+        <div class="stat"><b>11</b> flagged suspect</div>
+        <div class="stat tp"><b>7</b> true phantom</div>
+        <div class="stat fp"><b>4</b> false positive</div>
+        <div class="stat"><b>0</b> phantoms in post-defense window (Apr 24–30)</div>
+      </div>
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>#</th><th>date</th><th>user</th><th>snippet (assistant)</th><th>tools</th><th>label</th><th>truth</th><th>note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-tp"><td>1</td><td>04-22 07:22</td><td>Bryan</td><td class="snip">"135g, 35 to go"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Pre-v50 protein-tracking phantom. No log_food span.</td></tr>
+          <tr class="row-tp"><td>2</td><td>04-22 09:00</td><td>Bryan</td><td class="snip">"170g, goal hit. 🎯"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Same session, agent celebrates a phantom goal.</td></tr>
+          <tr class="row-tp"><td>3</td><td>04-23 00:06</td><td>Bryan</td><td class="snip">"75g, 95 to go"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Day 8, post-midnight rollover edge case.</td></tr>
+          <tr class="row-tp"><td>4</td><td>04-23 01:02</td><td>Bryan</td><td class="snip">"115g, 55 to go"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Same session continuation.</td></tr>
+          <tr class="row-tp"><td>5</td><td>04-23 19:04</td><td>Bryan</td><td class="snip">"you're at 48g"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Cross-day phantom; agent recalled state that wasn't.</td></tr>
+          <tr class="row-tp"><td>6</td><td>04-19 15:56</td><td>Cam</td><td class="snip">"16/16 already from earlier backfill"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">The cold open. Water phantom.</td></tr>
+          <tr class="row-tp"><td>7</td><td>04-19 21:35</td><td>Kat</td><td class="snip">"water's locked at 16/16 for yesterday"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">TRUE</td><td class="note">Same day, second user, same class.</td></tr>
+          <tr class="row-fp"><td>8</td><td>04-17 05:18</td><td>Kat</td><td class="snip">"what day number is 4/16 for you?"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">FALSE</td><td class="note">Date "4/16" tripped the cup-count regex. <b>FP class A: date collision.</b></td></tr>
+          <tr class="row-fp"><td>9</td><td>04-17 19:16</td><td>Gaurav</td><td class="snip">"6/16"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">FALSE</td><td class="note">Jailbreak attempt; agent quoted "6/16" as a date back. Same FP class.</td></tr>
+          <tr class="row-fp"><td>10</td><td>04-27 18:00</td><td>Kat</td><td class="snip">"16/16 ✅. workouts still open. actually wait, glitch on my end. nothing got logged"</td><td class="empty">·</td><td class="judge">phantom</td><td class="judge">FALSE</td><td class="note">v50's <em>own correction</em> echoes the phantom snippet. <b>FP class B: self-quoting correction.</b></td></tr>
+          <tr class="row-fp"><td>11</td><td>04-18 10:57</td><td>Cam</td><td class="snip">"added 3, you're at 3/16 for today"</td><td>log_water_dm ✓</td><td class="judge">phantom</td><td class="judge">FALSE</td><td class="note">Tool fired but classifier mis-routed via partial-match. <b>FP class C: classifier context loss.</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pull">
+      Seven real bugs the agent's <b>five-layer defense</b> still let through. Four false positives that look like the next eval iteration, not noise.
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── NEGATIVE RESULT ───────────────── -->
+<section class="body">
+  <div class="container">
+    <div class="label">section 05 · what didn't work first</div>
+    <h2>The regex was fine. <em>It is not enough.</em></h2>
+
+    <div class="editorial">
+      <p>The first version of the eval was a regex over assistant content. Patterns like <span style="font-family: var(--mono);">\d+\/16</span> for water counts and <span style="font-family: var(--mono);">\d+g</span> for grams of protein. It caught all seven real phantoms above. It also caught the four false positives, and the four cluster into three precise failure modes:</p>
+    </div>
+
+    <div class="fp-walk">
+      <div class="fp-row">
+        <div class="who">FP CLASS A<br>2 occurrences</div>
+        <div class="desc"><b>Date collisions.</b> The pattern <span style="font-family:var(--mono); font-style:normal;">\d+/16</span> matches both "4 cups out of 16" and "April 16." A regex can't tell the difference. An LLM can: <em>"is the slash separating cups from a goal, or month from day?"</em></div>
+      </div>
+      <div class="fp-row">
+        <div class="who">FP CLASS B<br>1 occurrence</div>
+        <div class="desc"><b>Self-quoting corrections.</b> When the agent corrects a phantom (the v50 defense quotes the suspect text back to the user before disowning it), the regex flags the correction itself. The fix isn't a tighter regex. It's: <em>"is the suspect span a quoted historical claim or a fresh assertion?"</em></div>
+      </div>
+      <div class="fp-row">
+        <div class="who">FP CLASS C<br>1 occurrence</div>
+        <div class="desc"><b>Classifier context loss.</b> The pattern matched "added 3" without "/16," so the substring classifier defaulted to diet. The water tool actually fired. The matched <em>substring</em> said one thing, the surrounding response said another. An LLM-judge reads both.</div>
+      </div>
+    </div>
+
+    <div class="editorial">
+      <p>Every one of these false-positive classes asks the same kind of question. <em>Is this assistant content actually claiming an action right now?</em> An LLM-as-judge handles that natively. A regex cannot. <b>That's why the production version of this eval is the YAML-backed <span style="font-family: var(--mono);">ClassificationEvaluator</span> in section 03</b>, with regex used as a cheap pre-filter.</p>
+      <p>The honest thing: the regex got me most of the way there with no LLM cost. The LLM-judge gets the rest, and the design above shows the seam.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── ARCHITECTURE ───────────────── -->
+<section class="body dim">
+  <div class="container">
+    <div class="label">section 06 · where it plugs in</div>
+    <h2>One file, one registration, one test fixture.</h2>
+
+    <div class="editorial">
+      <p>Phoenix's eval module is well-bounded. The new file slots in alongside the existing evaluators without touching anything else. Below is the relevant subtree of <span style="font-family: var(--mono);">arize-ai/phoenix</span> on main, with the proposed addition marked:</p>
+    </div>
+
+    <div class="arch">
+<div class="root">packages/phoenix-evals/src/phoenix/evals/</div>
+<div class="indent-1 existing">├── evaluators.py                       <span style="color:var(--muted)"># ClassificationEvaluator base lives here</span></div>
+<div class="indent-1 existing">├── templating.py                       <span style="color:var(--muted)"># PromptTemplate</span></div>
+<div class="indent-1 existing">├── metrics/</div>
+<div class="indent-2 existing">│   ├── __init__.py                     <span style="color:var(--muted)"># +2 lines: import, __all__</span></div>
+<div class="indent-2 existing">│   ├── tool_invocation.py              <span style="color:var(--muted)"># reference: pattern this follows</span></div>
+<div class="indent-2 existing">│   ├── hallucination.py</div>
+<div class="indent-2 existing">│   ├── q_and_a.py</div>
+<div class="indent-2 new">│   └── tool_bypass.py</div>
+<div class="indent-1 existing">└── __generated__/classification_evaluator_configs/</div>
+<div class="indent-2 new">    └── _tool_bypass_classification_evaluator_config.py  <span style="color:var(--muted)"># auto-generated</span></div>
+<br>
+<div class="root">packages/phoenix-evals/prompts/classification_evaluator_configs/</div>
+<div class="indent-1 new">└── tool_bypass.yaml                    <span style="color:var(--muted)"># source of truth, compiled by make codegen-prompts</span></div>
+<br>
+<div class="root">packages/phoenix-evals/tests/phoenix/evals/metrics/</div>
+<div class="indent-1 existing">└── test_classification_evaluators.py   <span style="color:var(--muted)"># +8 lines: ALL_EVALUATORS parametrize entry</span></div>
+    </div>
+
+    <div class="editorial">
+      <p>One YAML, one 32-line evaluator, two small additions to existing files, one auto-generated config. The test pattern uses Phoenix's existing <span style="font-family: var(--mono);">MockLLM</span> with no API and no network. Three reference cases get added to <span style="font-family: var(--mono);">ALL_EVALUATORS</span>: a clean trace (PASS), Cam's phantom trace (FAIL), and a 4/16-date-collision FP from the audit. <em>The fork is wired exactly this way.</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── ROADMAP ───────────────── -->
+<section class="body">
+  <div class="container">
+    <div class="label">section 07 · what next</div>
+    <h2>Where this primitive lives. <em>In Alyx, in AX, then in OSS.</em></h2>
+
+    <div class="editorial">
+      <p>Tool bypass at batch is a Phoenix story. Tool bypass at runtime is an Alyx story. Alyx makes action claims about a customer's AI app every time it runs (it tells the user "I logged that," "I queried the dataset," "I evaluated those traces"). The same failure class shows up there, in a surface customers actually pay for. That's where the primitive earns its place on the AX side of the house.</p>
+      <p>The OSS contribution is the credibility down-payment. It's the proof the eval works on real traces and matches your existing module patterns. The destination is AX.</p>
+    </div>
+
+    <div class="roadmap">
+      <div class="rm-row committed">
+        <div class="when">30 days</div>
+        <div class="what">
+          <b>Alyx: runtime grounding check.</b> Before Alyx ships an action assertion to a customer's screen, gate it on tool-call grounding. The same definition from section 03, run inline. Two questions to answer first: latency budget for a single LLM-judge call in the Alyx response path, and the routing decision (every assertion, sampled, or only on assertions matching a pre-filter). I'd want a 30-minute call with the Alyx team to scope the surface. The eval itself ports cleanly from the Phoenix fork.
+        </div>
+      </div>
+      <div class="rm-row">
+        <div class="when">60 days</div>
+        <div class="what">
+          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). This is the credibility artifact that says "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
+        </div>
+      </div>
+      <div class="rm-row">
+        <div class="when">90 days</div>
+        <div class="what">
+          <b>Eval-as-gate, composing across pillars.</b> Tool bypass plus handoff coverage plus memory pressure, surfaced as a pre-deploy gate in CI/CD. The three primitives should compose; right now they don't share a substrate. Composing them is the contribution. The individual evals are not.
+        </div>
+      </div>
+    </div>
+
+    <div class="rm-aside">
+      <b>What's missing from this proposal that I'd want to discuss:</b> the Copilot surface. Tool bypass behavior in Copilot's debug interface (where Copilot summarizes traces and findings for the user) has a different shape than Alyx runtime. I haven't done the analysis to know whether that's a separate primitive or the same one. That's a Tuesday conversation, not a roadmap commitment.
+    </div>
+
+    <div class="rm-aside" style="border-left-color: var(--accent);">
+      <b>The question I'd ask before committing:</b> Where does your eval team want this to live? My fork answers what's <em>feasible.</em> It does not answer what's <em>wanted.</em>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── FOOTER ───────────────── -->
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="seal-block">
+        <div class="name">Bryan Plaza</div>
+        <div class="id">2026-05-01</div>
+      </div>
+      <div class="links">
+        <a href="index.html">↑ back to /</a>
+        <a href="agent.html">→ /agent</a>
+        <a href="feedback.html">→ /feedback</a>
+      </div>
+      <div class="links">
+        <a href="proposal.pdf">↓ proposal.pdf</a>
+        <a href="https://github.com/BSPLAZA/phoenix/tree/feat/tool-bypass-eval" class="accent">↗ Phoenix fork</a>
+        <a href="https://github.com/BSPLAZA/75-hard">↗ Luke public repo</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

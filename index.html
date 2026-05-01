@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bryan Plaza · Take-home for Arize AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,30..100&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:    #f5efe3;
+    --paper-2:  #ece4d3;
+    --paper-3:  #e2d8c1;
+    --ink:      #120e0a;
+    --ink-2:    #2e2620;
+    --muted:    #6f6960;
+    --line:     #d8cfba;
+    --line-2:   #c5b99d;
+    --accent:   #c14613;       /* burnt sienna — failure / emphasis */
+    --accent-2: #8b3210;
+    --accent-soft: #f8e5d6;
+    --good:     #4a5d3a;       /* muted olive — covered */
+    --good-soft:#dde2cf;
+    --span:     #b8a888;       /* trace span fill */
+    --span-fail:#c14613;
+
+    --serif: 'Fraunces', 'Times New Roman', serif;
+    --sans:  'IBM Plex Sans', system-ui, sans-serif;
+    --mono:  'IBM Plex Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(193,70,19,0.04), transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(74,93,58,0.05), transparent 35%);
+    background-attachment: fixed;
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line-2); transition: border-color 120ms ease, color 120ms ease; }
+  a:hover { border-bottom-color: var(--ink); }
+  a.accent { color: var(--accent); border-bottom-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  a.accent:hover { border-bottom-color: var(--accent); color: var(--accent-2); }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 40px; position: relative; }
+
+  /* Top register */
+  .register {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    position: relative; z-index: 2;
+  }
+  .register .row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 32px;
+    align-items: center;
+    padding: 16px 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .register .id {
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  .register .id { font-family: var(--sans); font-size: 13px; }
+  .register .meta-line { color: var(--muted); }
+  .register .nav a { color: var(--muted); border: none; margin-left: 24px; }
+  .register .nav a:hover { color: var(--ink); }
+  .register .nav a.cur { color: var(--ink); }
+
+  /* Hero — the trace IS the design */
+  .hero {
+    padding: 88px 0 96px;
+    border-bottom: 1px solid var(--line);
+    position: relative; z-index: 1;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(193,70,19,0.025) 100%);
+    pointer-events: none;
+  }
+
+  .trace-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .trace-eyebrow .spanid { color: var(--ink); font-weight: 500; }
+
+  /* The actual trace timeline visualization */
+  .trace-bar {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    margin: 6px 0 28px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-top: 1px dashed var(--line-2);
+    border-bottom: 1px dashed var(--line-2);
+    align-items: center;
+  }
+  .trace-bar .label { color: var(--ink-2); font-weight: 500; }
+  .trace-bar .timeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4px;
+    height: 24px;
+    position: relative;
+  }
+  .trace-bar .span {
+    background: var(--span);
+    height: 100%;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--ink);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    position: relative;
+  }
+  .trace-bar .span.assistant { background: var(--span); }
+  .trace-bar .span.missing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--accent-soft),
+      var(--accent-soft) 3px,
+      var(--paper-3) 3px,
+      var(--paper-3) 6px
+    );
+    border: 1px dashed var(--accent);
+    color: var(--accent-2);
+    font-style: italic;
+  }
+  .trace-bar .span.assertion { background: var(--span); }
+  .trace-bar .span .marker {
+    position: absolute;
+    top: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: var(--accent);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: clamp(56px, 9vw, 112px);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    margin: 22px 0 0;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+  .hero h1 .strike {
+    position: relative;
+    display: inline-block;
+  }
+  .hero h1 .correction {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 320;
+    font-variation-settings: "opsz" 144, "SOFT" 80;
+  }
+
+  .hero .lede {
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: 24px;
+    line-height: 1.42;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+    max-width: 740px;
+    margin: 44px 0 0;
+    font-variation-settings: "opsz" 24, "SOFT" 50;
+  }
+  .hero .lede .accent {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .hero .byline {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: baseline;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .hero .byline b {
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0;
+    font-family: var(--mono);
+  }
+  .hero .byline .right { text-align: right; }
+
+  /* Section nav as trace branches */
+  .branches {
+    padding: 96px 0 88px;
+    border-bottom: 1px solid var(--line);
+    position: relative; z-index: 1;
+  }
+  .branches .label-line {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    align-items: baseline;
+    margin-bottom: 56px;
+  }
+  .branches .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .branches h2 {
+    font-family: var(--serif);
+    font-weight: 380;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+    margin: 0;
+    max-width: 720px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 36;
+  }
+
+  .tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .tree::before {
+    content: "";
+    position: absolute;
+    left: 200px; top: 0; bottom: 0; width: 1px;
+    background: var(--line);
+  }
+  .branch {
+    display: grid;
+    grid-template-columns: 200px 1fr 80px;
+    gap: 32px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: start;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    transition: background 140ms ease;
+  }
+  .branch:hover { background: rgba(193,70,19,0.03); }
+  .branch::after {
+    content: "";
+    position: absolute;
+    left: 200px; top: 50%;
+    width: 28px; height: 1px;
+    background: var(--line);
+  }
+  .branch:hover::after { background: var(--accent); }
+  .branch:last-child { border-bottom: none; }
+
+  .branch .span-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    padding-top: 8px;
+  }
+  .branch .span-id .num {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .branch .body {
+    padding-left: 44px;
+  }
+  .branch h3 {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 380;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 28;
+  }
+  .branch p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 560px;
+  }
+  .branch .arrow {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    padding-top: 16px;
+    transition: transform 160ms ease;
+  }
+  .branch:hover .arrow {
+    transform: translateX(6px);
+  }
+
+  /* TL;DR — editorial */
+  .tldr {
+    padding: 96px 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-2);
+    position: relative;
+  }
+  .tldr .label-line {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+  .tldr .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .tldr .body-block {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+  }
+  .tldr .marginalia {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+    border-top: 1px solid var(--line-2);
+    padding-top: 12px;
+  }
+  .tldr .marginalia b { color: var(--ink); font-weight: 500; }
+  .tldr .marginalia .div { margin: 12px 0; height: 1px; background: var(--line-2); }
+  .tldr .editorial {
+    font-family: var(--serif);
+    font-size: 23px;
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 720px;
+    font-variation-settings: "opsz" 23, "SOFT" 50;
+    font-weight: 380;
+  }
+  .tldr .editorial p { margin: 0 0 22px; }
+  .tldr .editorial p:last-child { margin-bottom: 0; }
+  .tldr .editorial p::first-letter {
+  }
+  .tldr .editorial .first p:first-child::first-letter {
+    font-family: var(--serif);
+    font-size: 72px;
+    line-height: 0.85;
+    float: left;
+    margin: 8px 12px -4px 0;
+    color: var(--accent);
+    font-weight: 600;
+    font-variation-settings: "opsz" 72;
+  }
+  .tldr .editorial b { font-weight: 600; color: var(--ink); }
+  .tldr .editorial em { color: var(--accent); font-style: italic; }
+  .tldr .editorial .underline-accent {
+    background-image: linear-gradient(to top, var(--accent-soft) 40%, transparent 40%);
+    padding: 0 2px;
+  }
+
+  /* Footer */
+  footer {
+    padding: 72px 0 96px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    position: relative; z-index: 1;
+  }
+  footer .row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 32px;
+    align-items: end;
+    border-top: 2px solid var(--ink);
+    padding-top: 28px;
+  }
+  footer .seal-block {
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  footer .seal-block .name {
+    font-family: var(--serif);
+    font-size: 28px;
+    color: var(--ink);
+    font-weight: 380;
+    font-variation-settings: "opsz" 28;
+    letter-spacing: -0.01em;
+  }
+  footer .seal-block .id { font-size: 10px; }
+  footer a { color: var(--muted); border: none; }
+  footer a:hover { color: var(--ink); }
+  footer .links { text-align: right; line-height: 1.9; }
+  footer .links a { display: block; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .anim { opacity: 0; animation: fadeUp 700ms cubic-bezier(0.2, 0.6, 0.2, 1) forwards; }
+  .a1 { animation-delay: 60ms; }
+  .a2 { animation-delay: 200ms; }
+  .a3 { animation-delay: 340ms; }
+  .a4 { animation-delay: 480ms; }
+  .a5 { animation-delay: 620ms; }
+
+  @media (max-width: 800px) {
+    .hero h1 { font-size: 44px; }
+    .branch { grid-template-columns: 1fr; gap: 12px; }
+    .branch::after { display: none; }
+    .branch .body { padding-left: 0; }
+    .tree::before { display: none; }
+    .tldr .body-block, .tldr .label-line, .branches .label-line { grid-template-columns: 1fr; }
+    .container { padding: 0 24px; }
+    .register .row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="register">
+  <div class="container">
+    <div class="row">
+      <div class="id">Bryan Plaza  ·  Take-home for Arize AI</div>
+      <div class="meta-line"></div>
+      <nav class="nav">
+        <a href="#" class="cur">/</a>
+        <a href="agent.html">/agent</a>
+        <a href="feedback.html">/feedback</a>
+        <a href="proposal.html">/proposal</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div class="trace-eyebrow anim a1">trace_id <span class="spanid">01k9f3·cam·apr19·15:56</span>  ·  duration 1.34s  ·  status <span style="color:var(--accent)">PASS (existing evals)</span></div>
+
+    <div class="trace-bar anim a2">
+      <div class="label">conversation</div>
+      <div class="timeline">
+        <div class="span assistant">chat.completion · "16/16 already from earlier backfill ✓"</div>
+        <div class="span missing">tool_call · log_water<span class="marker">missing</span></div>
+        <div class="span assertion">user_msg · "did u get my water from earlier"</div>
+      </div>
+    </div>
+
+    <h1 class="anim a3">
+      The bot said it logged her water<br>
+      <span class="correction">It didn't.</span>
+    </h1>
+
+    <p class="lede anim a4">
+      Phoenix's existing evals score that trace <span class="accent">PASS</span>. The agent didn't hallucinate a fact. It asserted an action that never fired. A failure class with no eval. This submission proposes one.
+    </p>
+
+    <div class="byline anim a5">
+      <div><b>Bryan Plaza</b></div>
+      <div class="right">Built and instrumented on <b>Luke</b>, my habit-accountability agent on Telegram.</div>
+    </div>
+  </div>
+</section>
+
+<section class="branches">
+  <div class="container">
+    <div class="label-line">
+      <div class="label">three deliverables</div>
+      <h2>One agent, one eval, one proposal. Three sections, one site.</h2>
+    </div>
+
+    <div class="tree">
+      <a href="agent.html" class="branch">
+        <div class="span-id"><span class="num">01</span><br>span.agent</div>
+        <div class="body">
+          <h3>The agent, in production</h3>
+          <p>Luke. 27 tools, 169 production turns last month, six daily-active users. What it does, how I instrumented it, and the trace that started this.</p>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+      <a href="feedback.html" class="branch">
+        <div class="span-id"><span class="num">02</span><br>span.feedback</div>
+        <div class="body">
+          <h3>Field notes from instrumenting</h3>
+          <p>Specific moments where Phoenix and AX worked, and where they didn't. An editorial essay rather than a feature comparison table.</p>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+      <a href="proposal.html" class="branch">
+        <div class="span-id"><span class="num">03</span><br>span.proposal</div>
+        <div class="body">
+          <h3>Tool Bypass: an eval primitive</h3>
+          <p>A failure-class taxonomy, a precise definition, real audit data over 169 turns, and a roadmap that names what would invalidate it.</p>
+        </div>
+        <div class="arrow">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="tldr">
+  <div class="container">
+    <div class="label-line">
+      <div class="label">if you have ninety seconds</div>
+    </div>
+    <div class="body-block">
+      <aside class="marginalia">
+        <b>Failure class:</b><br>tool bypass<br>
+        <div class="div"></div>
+        <b>Detection method:</b><br>regex first, LLM-as-judge planned
+        <div class="div"></div>
+        <b>Sample:</b><br>169 production turns<br>30 days, post v50 defense<br>
+        <div class="div"></div>
+        <b>Result:</b><br>7 real / 4 false positives<br>
+        <div class="div"></div>
+        <b>Fork status:</b><br>private, matched to your patterns<br>not a PR
+      </aside>
+      <div class="editorial">
+        <div class="first">
+          <p>Existing Phoenix evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em> and wrote an eval for it that matches Phoenix's existing module patterns, written as if I were already on the team.</p>
+        </div>
+        <p>The eval ran against <b>169 real production turns</b> from one of my agents. It caught <b>seven real phantom-action bugs</b> and surfaced <b>four false positives</b>. The false positives are useful: they argue for an LLM-as-judge follow-up rather than a regex-only approach, and they're documented row-by-row in the proposal section.</p>
+        <p>The proposal commits to an <b>Alyx runtime ship</b> in the next thirty days (with the OSS contribution as a credibility down-payment), names the dependency on handoff and memory primitives that come after, and asks the question I'd want to talk through before committing: where on the AX surface this primitive should actually live.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="seal-block">
+        <div class="name">Bryan Plaza</div>
+        <div class="id">2026-05-01</div>
+      </div>
+      <div class="links">
+        <a href="mailto:BSPlaza@outlook.com">BSPlaza@outlook.com</a>
+        <a href="https://github.com/BSPLAZA">github.com/BSPLAZA</a>
+        <a href="https://www.linkedin.com/in/BryanIAO">linkedin.com/in/BryanIAO</a>
+      </div>
+      <div class="links">
+        <a href="proposal.pdf">↓ proposal.pdf</a>
+        <a href="https://github.com/BSPLAZA/75-hard">↗ Luke public repo</a>
+        <a href="https://github.com/BSPLAZA/phoenix/tree/feat/tool-bypass-eval" class="accent">↗ Phoenix fork</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
