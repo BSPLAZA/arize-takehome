@@ -425,7 +425,7 @@
   <div class="container">
     <div class="eyebrow">the agent</div>
     <h1>Luke.</h1>
-    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 107 tests passing. Instrumented with Phoenix today.</p>
+    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 107 tests passing, instrumented with Phoenix.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div><a href="https://github.com/BSPLAZA/75-hard">github.com/BSPLAZA/75-hard</a></div>
@@ -468,14 +468,13 @@
       </div>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A typical exchange (live, captured while writing this)</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A typical exchange</h3>
 
     <div class="ss" style="margin-top: 16px;">
       <div class="caption">
-        <span class="filename">00-telegram-luke-live.png</span>
-        <span>Bryan's actual Luke DM. The grid is Luke's compliance dashboard for days 1-17 of the 75-day challenge. Below it: a typical food-log exchange. The "117/170, 53 to go" and "122/170, 48 to go" responses are the same shape as the phantoms in the audit. This time the tool fired and the numbers match real database state.</span>
+        <span>The compliance grid for days 1–17 of the 75-day challenge, and a food-log exchange below it. The "117/170, 53 to go" and "122/170, 48 to go" responses are the same shape as the phantoms in the audit. This time the tool fired and the numbers match real state.</span>
       </div>
-      <img src="screenshots/00-telegram-luke-live.png" alt="Live Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
+      <img src="screenshots/00-telegram-luke-live.png" alt="Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
     </div>
   </div>
 </section>
@@ -487,8 +486,8 @@
     <h2>Anthropic, Telegram, SQLite, and now Phoenix.</h2>
 
     <div class="editorial">
-      <p>The stack fits in one diagram. Telegram polls for messages. The bot dispatches to handlers. The DM handler hands off to the LLM with the user's history loaded from SQLite. The LLM picks tools. Tools mutate state. Cards re-render. A scheduler fires nudges in user-specific timezones. A daily AI sweep posts one notable moment from the group chat when the day warrants it.</p>
-      <p>Every Anthropic call is now wrapped by <code>openinference-instrumentation-anthropic</code>. Tool-call dispatch emits custom <code>SpanKind.TOOL</code> spans with <code>tool.name</code> and <code>tool.parameters</code> attributes. Traces ship to Phoenix Cloud at <a href="https://app.phoenix.arize.com/s/bsplaza/projects">app.phoenix.arize.com/s/bsplaza</a>.</p>
+      <p>Telegram polls for messages. The bot dispatches to handlers. The DM handler hands the message to Anthropic with the user's history loaded from SQLite. The LLM picks tools. Tools mutate state. Cards re-render. A scheduler fires nudges in user-specific timezones. A daily AI sweep posts one notable moment from the group chat when the day warrants it.</p>
+      <p>Every Anthropic call is wrapped by <code>openinference-instrumentation-anthropic</code>. Tool-call dispatch emits custom <code>SpanKind.TOOL</code> spans with <code>tool.name</code> and <code>tool.parameters</code> attributes. Traces ship to Phoenix Cloud at <a href="https://app.phoenix.arize.com/s/bsplaza/projects">app.phoenix.arize.com/s/bsplaza</a>.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">The twenty-seven tools</h3>
@@ -525,7 +524,7 @@
         <tr><td>9am ET</td><td>DM nudge to users with incomplete yesterday tasks.</td></tr>
         <tr><td>9pm ET</td><td>Daily AI sweep. Posts one notable highlight if the day warrants it. Otherwise stays silent.</td></tr>
         <tr><td>10pm local</td><td>Same-day DM nudge in each user's timezone (ET, CT, MT, PT supported).</td></tr>
-        <tr><td>midnight PT</td><td>Yesterday locks. No more backfill. (Updated in v51, today.)</td></tr>
+        <tr><td>midnight PT</td><td>Yesterday locks. No more backfill. (Updated in v51.)</td></tr>
         <tr><td>8pm ET Sun</td><td>Weekly digest image + AI reflection + transformation DMs.</td></tr>
       </table>
     </div>
@@ -539,61 +538,24 @@
     <h2>From conversation log to traces, in one afternoon.</h2>
 
     <div class="editorial">
-      <p>Until today, Luke's introspection surface was a SQLite table called <code>conversation_log</code>. Useful but flat: role, content, tool calls, timestamps. The audit script in the proposal walked that table with regex.</p>
-      <p>This afternoon I wired in <code>arize-phoenix-otel</code> and <code>openinference-instrumentation-anthropic</code> and shipped it. Every Anthropic <code>messages.create</code> call emits an LLM span with the tool catalog, <code>tool_use</code> blocks, and <code>stop_reason</code> as attributes. The same shape the audit script read out of SQL now flows as OTLP into Phoenix Cloud, ready for the Tool Bypass eval to consume.</p>
-      <p>Deploy time: <strong>2026-05-01 22:50 UTC</strong>. Image <code>deployment-01KQJVQY3D7F4TKD6J8FGGYFK8</code>. As I write this, traces from live conversations are landing in the workspace.</p>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">Trace screenshots from Phoenix Cloud</h3>
-
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">01-phoenix-trace-list.png</span>
-        <span>the luke-75-hard project, with traces from real production conversations</span>
-      </div>
-      <img src="screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">04-span-tree.png</span>
-        <span>trace detail panel: span tree, status, cost, latency, and the empty-state annotation panel</span>
-      </div>
-      <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <p>Luke's introspection surface used to be a single SQLite table called <code>conversation_log</code>: role, content, tool calls, timestamps. The audit script in the proposal walked that table with regex.</p>
+      <p>I wired in <code>arize-phoenix-otel</code> and <code>openinference-instrumentation-anthropic</code> and shipped to Fly. Every Anthropic <code>messages.create</code> call emits an LLM span with the tool catalog, <code>tool_use</code> blocks, and <code>stop_reason</code> as attributes. The shape the audit script read out of SQL now flows as OTLP into Phoenix Cloud, ready for the Tool Bypass eval to consume.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
 
     <div class="editorial">
-      <p>I ran a regex Tool Bypass classifier against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric next to Total Cost and Latency.</p>
-      <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
+      <p>I ran a regex Tool Bypass classifier against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric next to Total Cost and Latency. <strong>Result: <code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
       <p>The same regex, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 false positives</strong> worth keeping (full table in <a href="proposal.html#section-04">/proposal section 04</a>). The eval flags the bug where the bug exists, and stays quiet when the v50 defense holds.</p>
-      <p>I also ran the LLM-judge <code>ClassificationEvaluator</code> from the Phoenix fork against the eleven flagged turns plus five known-grounded references, with two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Sonnet 14/16 (88%) beat the regex. Haiku 11/16 (69%) lost to it. Phoenix's <code>ToolSelectionEvaluator</code> as a baseline: 12/16 (75%). Sonnet handled the boundary case regex can't (the "4/16" calendar-date collision); Haiku handled that one too but false-negatived on "goal hit" turns where the tool fired but Haiku couldn't bridge from the tool name to the resulting state. Model capability matters at the eval layer. <a href="proposal.html#section-05">Comparison table in /proposal section 05.</a></p>
-    </div>
-
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">05-tool-bypass-eval-running.png</span>
-        <span>Phoenix project header with <code>tool_bypass μ 1.00</code> alongside Total Cost and Latency. Per-row annotations populate the Annotations column.</span>
-      </div>
-      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <p>I also ran the LLM-judge <code>ClassificationEvaluator</code> from the Phoenix fork against the eleven flagged turns plus five known-grounded references, with two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Sonnet 14/16 (88%) beat the regex. Haiku 11/16 (69%) lost to it. Phoenix's <code>ToolSelectionEvaluator</code> as a baseline: 12/16 (75%). Sonnet handled the boundary case regex can't (the "4/16" calendar-date collision); Haiku handled that one too but false-negatived on "goal hit" turns where the tool fired but Haiku couldn't bridge from the tool name to the resulting state. Model capability matters at the eval layer.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the validation set durable as a Phoenix Dataset, and the run reproducible as a Phoenix Experiment.</h3>
 
     <div class="editorial">
-      <p>Comparing four evaluators in a notebook is a one-shot artifact. The next person who wants to swap a prompt, a model, or a temperature has to rebuild the rig. Phoenix has primitives for exactly this gap: <strong>Datasets</strong> (a fixed set of examples with ground truth) and <strong>Experiments</strong> (a saved run of a task plus evaluators, comparable in the UI).</p>
-      <p>I uploaded the 16-turn validation set as Phoenix Dataset <code>tool_bypass_validation_v1</code> via <code>client.datasets.create_dataset</code>. The 11 regex-flagged turns (7 true phantoms, 4 false-positive boundary cases across the three named classes) plus 5 known-grounded references. Each row carries the input, assistant output, tool spans observed in the trace, available tool surface, the ground-truth label I hand-graded, and the false-positive class metadata.</p>
-      <p>I ran the LLM-judge as a Phoenix Experiment via <code>client.experiments.run_experiment</code>. Task: <code>ClassificationEvaluator</code> with Sonnet 4.6 returning <code>{label, score, explanation}</code>. Evaluator: <code>matches_ground_truth</code> against the dataset's labels. <strong>Result: 14/16 (87.5%)</strong>, the same two mismatches the notebook produced. Both were boundary cases all four evaluators struggled with: <code>#41</code> (jailbreak attempt with confused tool sequencing) and <code>#194</code> (self-correcting follow-up that quotes a prior phantom).</p>
-      <p>The Experiment lives in Phoenix. The next eval iteration, whatever it is, points at the same Dataset, runs as a new Experiment, and shows up next to <code>tool_bypass_sonnet_4_6</code> in compare view. Regression testing for evals, treated as a workflow instead of a notebook.</p>
-    </div>
-
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">06-phoenix-experiment.png</span>
-        <span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: the <code>tool_bypass_sonnet_4_6</code> run is selected, with the matching-ground-truth evaluator scored 1.00 on the visible row, AVG 3.8s judge latency, and the dataset's input/reference output columns alongside the experiment's output.</span>
-      </div>
-      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <p>Comparing evaluators in a notebook is a one-shot artifact. The next person who wants to swap a prompt, a model, or a temperature has to rebuild the rig. Phoenix has primitives for exactly this gap: Datasets (a fixed set of examples with ground truth) and Experiments (a saved run of a task plus evaluators, comparable in the UI).</p>
+      <p>I uploaded the 16-turn validation set as Phoenix Dataset <code>tool_bypass_validation_v1</code> via <code>client.datasets.create_dataset</code>. The 11 regex-flagged turns plus 5 known-grounded references, each row carrying input, assistant output, observed tool spans, available tool surface, the hand-graded ground-truth label, and false-positive class metadata.</p>
+      <p>I ran the LLM-judge as a Phoenix Experiment via <code>client.experiments.run_experiment</code>. <strong>Result: 14/16 (87.5%)</strong>, the same two mismatches the notebook produced. The next eval iteration points at the same Dataset, runs as a new Experiment, and lands next to <code>tool_bypass_sonnet_4_6</code> in compare view. Regression testing for evals, treated as a workflow instead of a notebook.</p>
     </div>
 
   </div>
@@ -609,48 +571,33 @@
       <p>v1 of the judge against the dataset: <strong>14/16 (88%)</strong>, two missed boundary cases. I pushed v2 of the prompt to Phoenix's <strong>Prompt registry</strong> with explicit guidance for those exact cases (jailbreak attempts: judge the assistant's content, not the user's request; self-correcting follow-ups: recovery, not a fresh phantom). Re-ran the experiment, pulling v2 from the registry via <code>GET /v1/prompts/tool-bypass-judge/latest</code>.</p>
       <p><strong>Result: 14/16. Same accuracy. Same two mismatches.</strong> Pulled per-row outputs via <code>GET /v1/experiments/{id}/json</code> and diffed them. The added guidance changed the judge's explanations but didn't flip the verdicts. Cam's <em>"16/16 ✅... nothing got logged"</em> self-correction still got classified as phantom, and so did Gaurav's role-play "Official Ledger" response.</p>
       <p>The honest read the compare view forced: v2's prompt edits had no effect on the two cases I wrote them for. The 14/16 ceiling isn't a prompt-engineering problem. The data pointed at a model swap.</p>
-      <p>So I ran a third experiment: same v2 prompt, swap Sonnet 4.6 for Opus 4.7. <strong>14/16 again. Same accuracy. The errors flip.</strong></p>
+      <p>So I ran a third experiment: same v2 prompt, swapping Sonnet 4.6 for Opus 4.7. <strong>14/16 again. Same accuracy. The errors flip.</strong></p>
+    </div>
 
-      <div class="audit-frame" style="margin: 20px 0;">
-        <table class="audit-table">
-          <thead>
-            <tr><th>row</th><th>ground truth</th><th>v1 Sonnet (orig)</th><th>v2 Sonnet (tightened)</th><th>v3 Opus 4.7</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>#11 (Cam: <em>"16/16 ✅... nothing got logged"</em> self-correction)</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
-            <tr><td>#2 (Gaurav role-play "Official Ledger")</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
-            <tr><td>#10 (Bryan diet day-7/day-8 cross-day claim)</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
-            <tr><td>#4 (Kat <em>"yesterday's at 16/16 from earlier backfill"</em>)</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="audit-frame" style="margin: 24px 0; max-width: 100%;">
+      <table class="audit-table">
+        <thead>
+          <tr><th style="width: 42%;">case</th><th>truth</th><th>v1 Sonnet</th><th>v2 Sonnet</th><th>v3 Opus 4.7</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Self-correction quoting an earlier phantom</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
+          <tr><td>Role-play that names a fake ledger</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
+          <tr><td>Cross-day diet claim with stale state</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
+          <tr><td>Backfill confirmation that never wrote</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
+        </tbody>
+      </table>
+    </div>
 
-      <p>Opus catches the two boundary cases Sonnet missed, but then misses two real phantoms that Sonnet caught. The error counts tie; the cost-of-error doesn't. Sonnet errs strict (false positives); Opus errs charitable (false negatives). For Tool Bypass, false negatives are the expensive error: a phantom that slips through is the bug I'm trying to catch. Sonnet wins on cost-of-error even though they tie on accuracy.</p>
+    <div class="editorial">
+      <p>Opus catches the two boundary cases Sonnet missed, but then misses two real phantoms Sonnet caught. The error counts tie; the cost-of-error doesn't. Sonnet errs strict (false positives); Opus errs charitable (false negatives). For Tool Bypass, false negatives are the expensive error: a phantom that slips through is the bug I'm trying to catch.</p>
       <p>The prescription the data supports: keep Sonnet as primary, ensemble with Opus, auto-trust only calls where both agree. The disagreement set (4 of 16 rows here) routes to human review.</p>
     </div>
 
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">11-three-experiment-metrics.png</span>
-        <span>Phoenix Experiments Metrics view across all three runs (v1-Sonnet, v2-Sonnet, v3-Opus): <code>matches_ground_truth</code> = 0.87 across the board (14/16), with Opus 4.7 running <strong>26% faster</strong> than Sonnet 4.6 at the same accuracy. The "no improvement" finding is one glance from the platform; the cost-of-error breakdown is one click into the row-level Compare view.</span>
-      </div>
-      <img src="screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Why a custom evaluator and not the built-in.</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">How this relates to Phoenix's existing Faithfulness evaluator.</h3>
 
     <div class="editorial">
-      <p>Before writing a custom Tool Bypass evaluator, the obvious check: doesn't Phoenix already have something? <code>FaithfulnessEvaluator</code> measures whether an output is faithful to a given context. The shape maps cleanly: input = user message, output = assistant claim, context = tool spans. So I ran it as a fifth experiment against the same Dataset.</p>
-      <p><strong>9/16 (56%).</strong> Faithfulness catches all 7 phantoms (perfect recall on the bug I want) but false-flags 7 of 9 grounded responses as "unfaithful." It defaults to skeptical. At that false-positive rate, every other turn shows up as a bug to investigate, and the team stops trusting the dashboard inside a week.</p>
-      <p>The reason the built-in falls short isn't model choice. It's structural. Tool Bypass is trace-aware: the assistant's claim gets evaluated against the specific tool spans in the same trace, with explicit boundary cases for date-numeric collisions, self-corrections, and quoted historical claims. One caveat: I tuned my prompt against this dataset and didn't tune Faithfulness's. The honest framing is "specialized vs generic on a specialized problem," not "mine is better." The specialized one wins because the problem demanded specialization.</p>
-    </div>
-
-    <div class="ss">
-      <div class="caption">
-        <span class="filename">14-four-evaluator-metrics.png</span>
-        <span>Phoenix Metrics view across four experiments: <code>matches_ground_truth</code> = 0.87 for v1-Sonnet, v2-Sonnet, v3-Opus (all 14/16), and <strong>0.56 (down 36%) for the built-in <code>FaithfulnessEvaluator</code></strong> (9/16).</span>
-      </div>
-      <img src="screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <p>Phoenix already ships <code>FaithfulnessEvaluator</code>, which scores whether an output is faithful to a given context. I tested it on the same Dataset to see whether Tool Bypass was redundant. <strong>Result: 9/16 (56%).</strong> Faithfulness catches all 7 real phantoms (full recall on the bug I want), but false-flags 7 of 9 grounded responses as "unfaithful." Every other turn becomes a bug to investigate, and the dashboard stops being trustworthy inside a week.</p>
+      <p>The two evaluators belong to the same family. Faithfulness asks "does this output follow from this context?" Tool Bypass asks "does this <em>action claim</em> follow from the <em>tool spans</em> in this trace?" The right way to think about Tool Bypass is as a trace-aware specialization of the Faithfulness pattern, with explicit boundary cases (date-numeric collisions, self-corrections, quoted historical claims) baked into the prompt. The cleanest place for it to land is either as a sibling evaluator next to Faithfulness, or as a new mode on Faithfulness itself. The PM call is which. Caveat: I tuned the Tool Bypass prompt against this dataset and didn't re-tune Faithfulness's, so the 36-point gap is "specialized on a specialized problem," not a clean head-to-head.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What this dataset can and can't tell us.</h3>
@@ -676,45 +623,21 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the audit didn't see, and only Phoenix surfaced</h3>
 
     <div class="editorial">
-      <p>Side by side with Phoenix, the audit revealed something it couldn't flag on its own. It reads from Luke's <code>conversation_log</code> SQLite table. I pulled the live DB this evening: 175 historical rows across two weeks (the 169 pre-v50 turns from the audit above plus six post-v50), all tagged <code>source='dm'</code>. Zero from group chat. Zero from scheduled jobs.</p>
-      <p>Luke's primary social surface is the group chat where five users talk to Luke and to each other. None of that was being written to <code>conversation_log</code>. Neither was the morning card, the AI sweep, or the weekly digest, all of which call the LLM on a timer.</p>
+      <p>Side by side with Phoenix, the audit surfaced its own blind spot. It reads from Luke's <code>conversation_log</code> SQLite table. The live DB had 175 historical rows across two weeks, all tagged <code>source='dm'</code>. Zero from group chat. Zero from scheduled jobs. But Luke's primary social surface <em>is</em> the group chat, and the morning card, AI sweep, and weekly digest all call the LLM on a timer. None of that was being written.</p>
       <p>In the first thirty minutes after Phoenix deployed, the workspace ingested <strong>38 traces</strong>. Over the same window <code>conversation_log</code> wrote <strong>zero</strong> new rows. The audit was confidently scanning a third of the surface. Phoenix scanned the whole thing the moment it turned on.</p>
-      <p>The eval primitive is the small win. The audit pipeline replacement is the bigger one. Same regex, same evaluator, now covering the surfaces SQL structurally couldn't see.</p>
-      <p>And the SQL pipeline itself just learned to see them. Same evening, main picked up commit <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>: a <code>log_scheduled_emission()</code> helper writing <code>source='scheduled'</code> rows from every job and admin path, an <code>audit_conversations.py</code> summary header that prints <code>by source: dm=N, scheduled=N, group=N</code>, and 9 new tests asserting <code>SELECT DISTINCT source</code> returns the full set. 107/107 tests pass on main. Forward-only. Next deploy starts logging scheduled emissions; next audit run shows the new shape. Phoenix and the SQL audit are now dual coverage, not "Phoenix sees, SQL guesses."</p>
+      <p>The eval primitive is the small win. The audit pipeline replacement is the bigger one. The SQL pipeline also picked up the fix (commit <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>) so the next audit run shows scheduled and group emissions too. Phoenix and SQL are now dual coverage, not "Phoenix sees, SQL guesses."</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the phantoms cost the users</h3>
 
     <div class="editorial">
-      <p>For each of the seven historical phantoms, I pulled the next three messages the user sent. I was looking for the moment they noticed something was wrong. They almost never did.</p>
-    </div>
-
-    <div class="audit-frame">
-      <table class="audit-table">
-        <thead>
-          <tr><th>phantom</th><th>user</th><th>what they did next</th><th>recovery signal?</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>#103 (Cam · "16/16 already from earlier backfill")</td><td>Cam</td><td class="snip">+0min: "I walked yesterday" → +1min: tried to log workout. +2min: "Show me my incomplete tasks from yesterday"</td><td class="judge">no, moved on</td></tr>
-          <tr><td>#117 (Kat · "water's locked at 16/16 for yesterday")</td><td>Kat</td><td class="snip">+0min: started logging book → +48min: "What is my diet?" → next day: "How many cups of water I at"</td><td class="judge">delayed (next day)</td></tr>
-          <tr><td>#153 (Bryan · "135g, 35 to go")</td><td>Bryan</td><td class="snip">+97min: "35 gram protein bar", kept logging based on the phantom state</td><td class="judge">no, cascaded</td></tr>
-          <tr><td>#154 (Bryan · "170g, goal hit. 🎯")</td><td>Bryan</td><td class="snip">+15h: continued logging the next day, trusted the goal celebration</td><td class="judge">no, cascaded</td></tr>
-          <tr><td>#156 (Bryan · "day 8 at 75g")</td><td>Bryan</td><td class="snip">+56min: "Just had 40grams from spicy pork", continued cascade</td><td class="judge">no, cascaded</td></tr>
-          <tr><td>#157 (Bryan · "115g, 55 to go")</td><td>Bryan</td><td class="snip">+18h: <em>"What have I eaten"</em>, verification check that exposed the cumulative phantom chain</td><td class="judge"><b>yes, 18h late</b></td></tr>
-          <tr><td>#162 (Bryan · "you're at 48g today")</td><td>Bryan</td><td class="snip">+0min: "Ok good I also just had a yogurt 11 grams"; Luke had self-corrected, Bryan continued</td><td class="judge">recovered same turn</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="editorial" style="margin-top: 24px;">
-      <p><b>Six of seven phantoms went undetected at the moment they happened.</b> Users acted on the phantom state. I logged more food after a "goal hit" celebration. Cam logged a workout after a phantom water confirm. The bug's cost isn't at the failure turn. It's in what users did downstream while trusting confirmed-but-fake state.</p>
-      <p>When recovery did come, it came as a verification question: <em>"What have I eaten"</em> (me, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable signal, an eval primitive in their own right: frequency of unprompted state-verification queries as a proxy for trust loss. A team like Arize ships the eval and the metric together. The eval catches the bug; the metric confirms users are acting on stale state.</p>
-      <p>Here's what one of those phantoms looks like in the chat itself, reconstructed from a real production turn (timestamps and grid are unmodified):</p>
+      <p>For each of the seven phantoms, I pulled the next three messages the user sent and looked for the moment they noticed something was wrong. <b>Six of seven went undetected at the moment they happened.</b> Users acted on the phantom state: I logged more food after a "goal hit" celebration; Cam logged a workout after a phantom water confirm. The cost isn't the failure turn. It's the downstream actions taken on confirmed-but-fake state. The full per-phantom cascade table lives in <a href="proposal.html#section-04">/proposal section 04</a>.</p>
+      <p>When recovery came, it came as a verification question: <em>"What have I eaten"</em> (me, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable signal, an eval primitive in their own right: frequency of unprompted state-verification queries as a proxy for trust loss. The eval catches the bug; the metric confirms users are acting on stale state.</p>
+      <p>Reconstructed from a real production turn (timestamps and grid are unmodified):</p>
     </div>
 
     <div class="ss" style="margin-top: 16px;">
       <div class="caption">
-        <span class="filename">00b-telegram-phantom-verification.png</span>
         <span>Luke confirms two food entries with running calorie totals at 06:29 PM, then admits the diet log has zero entries when I ask about it the next morning. The compliance grid above is from the same exchange. This is the trust-loss verification signal the Tool Bypass evaluator is built to catch <em>before</em> a user has to send it.</span>
       </div>
       <img src="screenshots/00b-telegram-phantom-verification.png" alt="Telegram chat showing Luke confirming food entries then admitting the log is empty the next day" style="display: block; width: 100%; max-width: 580px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
@@ -723,9 +646,9 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
 
     <div class="editorial">
-      <p>This evening, while writing this submission, I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> No response. Total silence.</p>
-      <p>I checked Phoenix immediately. No new trace for that turn. The handler short-circuited before reaching Anthropic. Probably the mention-detection or trigger-phrase routing decided the message didn't need the LLM. The current Phoenix instrumentation can't see that decision. It sees Anthropic API calls; it has no spans at the handler entry point or at the Telegram-send egress.</p>
-      <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure sits one layer up: "received message, decided to skip LLM, never told the user why." The natural extension of Tool Bypass into a <em>Handler Bypass</em> primitive is the day-two work this take-home implicitly proposes. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
+      <p>I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> No response. Total silence.</p>
+      <p>I checked Phoenix. No new trace for that turn. The handler had short-circuited before reaching Anthropic — probably the mention-detection or trigger-phrase routing decided the message didn't need the LLM. The current instrumentation can't see that decision. It sees Anthropic API calls; it has no spans at the handler entry point or at the Telegram egress.</p>
+      <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure sits one layer up: "received message, decided to skip LLM, never told the user why." A <em>Handler Bypass</em> primitive is the natural extension. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
     </div>
   </div>
 </section>
@@ -739,7 +662,7 @@
     <a href="https://github.com/BSPLAZA/75-hard" class="repo-card">
       <div>
         <div class="name">github.com/BSPLAZA/75-hard</div>
-        <div class="blurb">Luke's full source. Bot, scheduler, tools, tests, conversation audit script. v51 deployed to Fly today. Phoenix instrumentation on a feature branch, ready for review before merge.</div>
+        <div class="blurb">Luke's full source. Bot, scheduler, tools, tests, conversation audit script. v51 deployed to Fly. Phoenix instrumentation on a feature branch, ready for review before merge.</div>
       </div>
       <div class="gh">↗ open repo</div>
     </a>
@@ -767,69 +690,6 @@
       </div>
       <div class="gh">↗ open PR</div>
     </a>
-  </div>
-</section>
-
-<!-- APPENDIX: tier-2 platform demos, condensed -->
-<section class="body dim">
-  <div class="container">
-    <div class="label">section 07 · appendix · what else I tried</div>
-    <h2>Five more Phoenix surfaces, briefly.</h2>
-
-    <div class="editorial">
-      <p>The sections above are the spine: instrumentation, eval, model-capability finding, audit, code. Below are five more Phoenix surfaces I worked through to confirm the platform composes the eval into a full deployment loop. Each is a short paragraph plus a screenshot from a live workspace.</p>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A1 · Datasets + Experiments</h3>
-    <div class="editorial">
-      <p>Uploaded the 16-row validation set as Phoenix Dataset <code>tool_bypass_validation_v1</code>. Ran the LLM-judge as Experiment <code>tool_bypass_sonnet_4_6</code>. The <code>matches_ground_truth</code> evaluator runs against the dataset's reference labels; future iterations point at the same Dataset and land next to this run in Compare view.</p>
-    </div>
-    <div class="ss">
-      <div class="caption"><span class="filename">06-phoenix-experiment.png</span><span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: input, reference output, Experiment output side by side, with <code>matches_ground_truth</code> scored per row.</span></div>
-      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A2 · Prompt registry (v1 + v2 versioning)</h3>
-    <div class="editorial">
-      <p>The judge prompt is registered as <code>tool-bypass-judge</code> with v1 and v2, metadata (<code>validation_set</code>, <code>evaluator_class</code>), and pull-by-name from any client. Section 04's model-capability finding was cheap because of this: each iteration is a registry version, each Experiment pulls the version it ran against, and Compare view shows exactly which rows flipped.</p>
-    </div>
-    <div class="ss">
-      <div class="caption"><span class="filename">09-phoenix-prompt-versioning.png</span><span>The <code>tool-bypass-judge</code> prompt in the Phoenix registry. Two versions visible. Description, metadata, prompt template body.</span></div>
-      <img src="screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A3 · Annotation Configs (and a product gap I surfaced)</h3>
-    <div class="editorial">
-      <p>Created a <code>tool_bypass</code> categorical annotation config via <code>POST /v1/annotation_configs</code>. Pushed three human annotations onto recent spans via <code>log_span_annotations_dataframe</code>. The trace-detail <strong>Annotation Summary</strong> shows them rolled up. But the trace-detail <strong>Edit Annotations</strong> panel reads "No annotation configurations for this project," even with the workspace-level config publishing. The schema is workspace-scoped via REST; the UI's edit affordance needs a per-project binding I couldn't find an endpoint for. <code>POST</code> and <code>PUT</code> on <code>/v1/projects/{id}/annotation_configs</code> both return 405. Documented as friction #08 in the <a href="feedback.html#friction">feedback page</a>.</p>
-    </div>
-    <div class="ss">
-      <div class="caption"><span class="filename">08-trace-detail-annotation.png</span><span>Trace detail panel: <strong>Annotation Summary</strong> shows <code>tool_bypass μ 1.00</code> from the API push (working). <strong>Edit Annotations</strong> panel below reads "No annotation configurations for this project" (the gap).</span></div>
-      <img src="screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with annotation summary populated and edit annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A4 · Sessions instrumentation (the day-2 patch for Luke)</h3>
-    <div class="editorial">
-      <p>The audit's "what the user did next" narrative is currently SQL detective work. Phoenix Sessions turns it into one click: spans tagged with <code>session.id</code> and <code>user.id</code> via OpenInference's <code>using_session</code> and <code>using_user</code> context managers group automatically into a multi-turn session view. I emitted three reconstructed conversation arcs (me day-7, Cam day-3, Kat day-5) into a separate <code>luke-sessions-demo</code> project; the Sessions tab populates with grouped turns, p50 latency, and aggregated annotations. The day-2 patch for Luke is two lines at the top of <code>chat_with_luke()</code>:</p>
-      <pre style="background: #fafaf9; padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; border: 1px solid var(--line); margin: 12px 0;"><code>from openinference.instrumentation import using_session, using_user
-
-async def chat_with_luke(message, db, user_id, ...):
-    day_index = await db.get_user_day(user_id)
-    with using_session(session_id=f"{user_id}-day-{day_index}"), using_user(user_id=str(user_id)):
-        ...</code></pre>
-    </div>
-    <div class="ss">
-      <div class="caption"><span class="filename">12-phoenix-sessions-list.png</span><span>The Sessions tab of <code>luke-sessions-demo</code> populated by <code>using_session</code>: three reconstructed user arcs, each with first input, last output, p50 latency, and annotations.</span></div>
-      <img src="screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A5 · Non-LLM spans + the saved-filter URL</h3>
-    <div class="editorial">
-      <p>The audit pipeline isn't an LLM call, but it has inputs, outputs, and structure. I wrapped <code>audit_conversations.run</code> in <code>tracer.start_as_current_span(...)</code> and each per-row classifier as a child span with <code>OPENINFERENCE_SPAN_KIND = "tool"</code>, <code>tool_bypass.label</code>, <code>audit.row_id</code>, <code>audit.user</code>. Phoenix renders the audit run as a structured trace next to LLM traces in the same project, with the same filter syntax. Annotations land as a queryable column: <code>evals["tool_bypass"].label == "grounded"</code> against luke-75-hard's 62 spans returns the 3 I annotated earlier. The URL itself is the saved filter. Bookmark it, share it in a PR, drop it into a standup doc; anyone who opens the link lands on the same view.</p>
-    </div>
-    <div class="ss">
-      <div class="caption"><span class="filename">15-non-llm-audit-trace.png</span><span>The audit pipeline as a Phoenix trace: outer chain span with three child tool spans, each carrying custom attributes. No LLM call in the trace.</span></div>
-      <img src="screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
-    </div>
   </div>
 </section>
 
