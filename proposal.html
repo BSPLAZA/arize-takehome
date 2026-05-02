@@ -1030,11 +1030,11 @@
 
     <div class="editorial" style="margin-top: 24px;">
       <ul>
-        <li><b>Headline:</b> Sonnet 4.6 beats regex. Haiku loses to it. <code>ToolSelectionEvaluator</code> sits at 12/16, missing the same two boundary cases Sonnet handled. Model capability and trace-aware framing both matter</li>
-        <li><b>Deployment design:</b> regex as cheap pre-filter, Sonnet-class judge as boundary-case adjudicator, ToolSelection in parallel for wrong-tool detection. Opus 4.7 also 14/16 — errors flip to false-negatives, which cost more here, so Sonnet stays primary</li>
-        <li><b>Build-vs-buy:</b> Phoenix's <code>FaithfulnessEvaluator</code> on the same set: <strong>9/16</strong>. Catches all 7 phantoms but false-flags 7 of 9 grounded as unfaithful. Structural shortfall, not model — generic faithfulness lacks the trace-aware boundary scaffolding (date collisions, self-corrections, quoted historical claims). Specialized-vs-untuned-generic on a specialized problem, not a clean head-to-head</li>
-        <li><b>Eval landscape:</b> LangSmith, Langfuse, Braintrust, Weave all ship custom-eval runners. None ship a built-in that composes an assistant's action claim against the same trace's tool spans. Phoenix already has the trace context and evaluator runtime — the library that ships this primitive reads the trace the way the team building the agent already thinks about it</li>
-        <li><b>Who feels this most:</b> finance ops, healthcare workflow agents, customer-success and refund agents, compliance copilots, CRM/ticketing automation. Wedge customer = team that already shipped an action-taking agent into a high-trust workflow and started asking "what fraction of our agent's claims are actually grounded?"</li>
+        <li><b>Headline:</b> Sonnet beats regex. Haiku loses. ToolSelection 12/16, misses the same two boundary cases Sonnet handles</li>
+        <li><b>Deployment:</b> regex as pre-filter, Sonnet as adjudicator, Opus as ensemble (errors flip to false-negatives, which cost more)</li>
+        <li><b>Build-vs-buy:</b> Phoenix <code>FaithfulnessEvaluator</code> = <strong>9/16</strong>. Catches phantoms but false-flags 7 of 9 grounded. Structural — lacks trace-aware boundary scaffolding</li>
+        <li><b>Landscape:</b> LangSmith / Langfuse / Braintrust / Weave ship custom-eval runners. None ship this primitive built-in</li>
+        <li><b>Wedge customer:</b> finance ops, healthcare, refund agents, compliance copilots, CRM automation — teams already asking "what fraction of our agent's claims are grounded?"</li>
       </ul>
     </div>
   </div>

@@ -388,8 +388,8 @@
         <div class="num">01</div>
         <div class="body">
           <span class="what"><code>Client(base_url=...)</code> needs the workspace path or every call returns 401.</span>
-          The Cloud quickstart shows <code>https://app.phoenix.arize.com</code> as the endpoint. Passing that to <code>Client</code> returned 401 on the first <code>get_spans_dataframe</code>. Switching to <code>https://app.phoenix.arize.com/s/bsplaza</code> fixed it. Three attempts to land on the right shape.
-          <span class="so-what">Accept the bare domain and infer the workspace from the API key (the JWT carries it), or surface a clear error: "this key is bound to workspace 'bsplaza'; set base_url to https://app.phoenix.arize.com/s/bsplaza." Right now the failure is a generic <code>HTTPStatusError: 401</code>.</span>
+          The Cloud quickstart shows the bare domain. <code>Client(base_url='https://app.phoenix.arize.com')</code> → 401. Three attempts to land on <code>/s/bsplaza</code>.
+          <span class="so-what">Infer the workspace from the JWT, or return "this key is bound to workspace X; set base_url to ..." instead of a generic 401.</span>
         </div>
       </div>
 
@@ -397,17 +397,17 @@
         <div class="num">02</div>
         <div class="body">
           <span class="what">API key plumbing has five working paths and no canonical one.</span>
-          <code>Client(api_key=...)</code> works. <code>os.environ['PHOENIX_API_KEY']</code> works. <code>headers={'api_key': key}</code> works. <code>headers={'Authorization': f'Bearer {key}'}</code> works. <code>PHOENIX_CLIENT_HEADERS=api_key=&lt;key&gt;</code> for the OTLP exporter works. All valid, none flagged as recommended. Two minutes deciding which to use.
-          <span class="so-what">Pick a recommended path and put it at the top of the SDK quickstart. The other four can be alternates.</span>
+          <code>Client(api_key=...)</code>, <code>PHOENIX_API_KEY</code>, <code>headers={'api_key':...}</code>, Bearer header, <code>PHOENIX_CLIENT_HEADERS</code>. All valid, none flagged as recommended.
+          <span class="so-what">Pick one recommended path; put it at the top of the SDK quickstart.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">03</div>
         <div class="body">
-          <span class="what">DataFrame columns aren't list-flattened the way you'd expect.</span>
-          <code>get_spans_dataframe()</code> returns a column <code>attributes.llm.output_messages</code> whose values are Python lists of dicts, not flattened to <code>attributes.llm.output_messages.0.message.content</code> the way attribute paths usually are. My first classifier returned empty strings for every row because the dotted path didn't exist. Three minutes to introspect the columns and rewrite the extractor.
-          <span class="so-what">Flatten consistently, or surface the schema in the <code>get_spans_dataframe</code> docstring. Current behavior is correct but invisible until you hit it.</span>
+          <span class="what">DataFrame columns aren't list-flattened the way the rest of the schema is.</span>
+          <code>attributes.llm.output_messages</code> returns a list of dicts, not flattened to <code>attributes.llm.output_messages.0.message.content</code>. My extractor returned empty strings until I introspected.
+          <span class="so-what">Flatten consistently, or surface the schema in <code>get_spans_dataframe</code>'s docstring.</span>
         </div>
       </div>
 
@@ -415,8 +415,8 @@
         <div class="num">04</div>
         <div class="body">
           <span class="what">The simplest evaluator primitive is buried.</span>
-          I wrote a custom regex classifier. After it worked, I ran <code>dir(phoenix.evals.metrics)</code> out of curiosity and found <code>MatchesRegex</code>. It would have replaced thirty lines of my code. Docs lead with the LLM-judge evaluators (Hallucination, Faithfulness, Refusal); the lighter-weight building blocks aren't on the same page.
-          <span class="so-what">Add a "before you write your own evaluator" page. List the primitives (<code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>) with one-line use cases. Saves the next person thirty lines.</span>
+          Found <code>MatchesRegex</code> after writing a custom regex classifier. Would have replaced 30 lines. Docs lead with the LLM judges; lightweight primitives aren't on the same page.
+          <span class="so-what">"Before you write your own evaluator" page listing <code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>.</span>
         </div>
       </div>
 
@@ -424,35 +424,35 @@
         <div class="num">05</div>
         <div class="body">
           <span class="what">The trace-to-eval handoff is invisible from the UI.</span>
-          The trace-detail annotations sidebar reads "No annotation configurations for this project." No setup CTA. No "run a built-in eval on this trace" prompt. The only way I got annotations into the UI was via the Python SDK in a separate script. From inside the UI, you can't.
-          <span class="so-what">Wire the empty annotations panel to a one-click flow: pick a built-in eval, pick a model, run on the current trace. The first eval should be a button, not a Python script. The SDK path stays for batch and CI.</span>
+          Trace-detail annotations panel reads "No annotation configurations for this project." No CTA, no "run a built-in eval" button. Only path is a Python SDK script.
+          <span class="so-what">Wire the empty panel to one-click: pick eval, pick model, run on this trace. First eval should be a button, not a notebook.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">06</div>
         <div class="body">
-          <span class="what">The filter bar expects you to already know the query syntax.</span>
-          The trace list filter takes <code>span_kind == 'LLM'</code> as raw syntax. No query builder, no column-header click-to-filter, no autocomplete chips. New users guess or read a doc.
-          <span class="so-what">Column-header dropdowns for the common filters (kind, status, latency bucket). Keep the raw-query input for power users. The first session shouldn't require a doc.</span>
+          <span class="what">The filter bar expects you to know the query syntax.</span>
+          <code>span_kind == 'LLM'</code> as raw input. No query builder, no column-header click-to-filter, no autocomplete.
+          <span class="so-what">Column-header dropdowns for kind, status, latency bucket. Keep the raw query for power users.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">07</div>
         <div class="body">
-          <span class="what">URLs use base64 IDs instead of human-readable slugs.</span>
-          Project and trace URLs are base64-encoded GraphQL global IDs (<code>UHJvamVjdDox</code>). Cosmetic, but it makes URLs unfriendly to share in chat or screenshots, and some browser-automation tools refuse to navigate them as a defense.
-          <span class="so-what">Add a slug or short-id alongside the base64. Default to the slug in the URL bar. Keep base64 as the canonical id for the API.</span>
+          <span class="what">URLs use base64 GraphQL IDs (<code>UHJvamVjdDox</code>) instead of slugs.</span>
+          Cosmetic, but unfriendly to share, and some browser-automation tools refuse to navigate them.
+          <span class="so-what">Add a slug alongside the base64. Default the URL bar to the slug.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">08</div>
         <div class="body">
-          <span class="what">Annotation Configs are workspace-wide via REST, but the trace-detail "Edit Annotations" panel needs a per-project binding I couldn't reach via the public API.</span>
-          I created <code>tool_bypass</code> as a categorical annotation config via <code>POST /v1/annotation_configs</code> (200 OK). Pushed annotations onto recent spans via <code>log_span_annotations_dataframe</code> (200 OK). The trace-detail <strong>Annotation Summary</strong> shows them rolled up. But the <strong>Edit Annotations</strong> panel right below reads "No annotation configurations for this project." The schema and the data flow work; the click-to-annotate UI doesn't pick them up. <code>POST</code> and <code>PUT</code> to <code>/v1/projects/{id}/annotation_configs</code> both return 405. So a reviewer in the trace UI still can't structurally label a span without a Python notebook.
-          <span class="so-what">Auto-bind workspace configs to all projects, expose the binding endpoint over REST, or surface a "use in this project" toggle on the workspace settings page. The fix is small. The impact is real: structured annotations stop being a Python-only workflow and become reachable for any reviewer in the trace detail UI.</span>
+          <span class="what">Annotation Configs created via REST don't show up in the trace-detail "Edit Annotations" panel.</span>
+          <code>POST /v1/annotation_configs</code> returns 200. <code>log_span_annotations_dataframe</code> returns 200. Annotation Summary shows the rollup. But Edit Annotations says "no configurations for this project," and <code>POST/PUT /v1/projects/{id}/annotation_configs</code> both return 405. Reviewers can't label without a notebook.
+          <span class="so-what">Auto-bind workspace configs to all projects, or expose the binding endpoint over REST.</span>
         </div>
       </div>
     </div>
@@ -467,16 +467,16 @@
     <h2>I tried to drive Phoenix from Claude Code as my agent. The seams showed.</h2>
 
     <div class="editorial">
-      <p>Most of the instrumentation work above was driven from Claude Code with me supervising. It's the closest thing I have to a shadow-Alyx — an AI agent operating Phoenix on my behalf. Where it succeeded and where it stalled is its own piece of feedback.</p>
+      <p>Claude Code drove the instrumentation work with me supervising — the closest thing I have to a shadow-Alyx. Where it stalled is its own piece of feedback.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What worked</h3>
 
     <div class="editorial">
       <ul>
-        <li>SDK-level operations: span queries, dataset CRUD, experiment runs, annotation pushes — all driven without me touching the UI</li>
-        <li>GraphQL once the schema was discovered — mutations like <code>createDatasetBuiltinEvaluator</code> and one-off introspection queries</li>
-        <li>OTLP shipping from Luke to the workspace — boring and reliable</li>
+        <li>SDK ops: span queries, dataset CRUD, experiments, annotations — all driven without touching the UI</li>
+        <li>GraphQL mutations once the schema was discovered</li>
+        <li>OTLP shipping from Luke to the workspace</li>
       </ul>
     </div>
 
@@ -487,41 +487,41 @@
         <div class="num">01</div>
         <div class="body">
           <span class="what">Evaluator registration is a UI-only flow.</span>
-          The agent could push annotations and run experiments via SDK, but registering an LLM evaluator (so it shows up on <code>/evaluators</code> and can be re-run from the UI) required clicking through the "Create new LLM evaluator" modal. There's no public REST or GraphQL mutation that takes a prompt + model + dataset and lands the same row. I had to break out of the agent loop and drive the form myself.
-          <span class="so-what">Surface a <code>POST /v1/evaluators</code> (or expose the underlying GraphQL mutation publicly). Without it, AI-driven Phoenix workflows hit a hard wall at the eval-registration step — exactly where you'd want the agent to keep going.</span>
+          No public REST or GraphQL mutation accepts prompt + model + dataset and lands an evaluator on <code>/evaluators</code>. I had to break out of the agent loop and click through the modal myself.
+          <span class="so-what">Surface <code>POST /v1/evaluators</code>. Without it, AI-driven Phoenix workflows hit a wall exactly where the agent should keep going.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">02</div>
         <div class="body">
-          <span class="what">Schema discovery is slow without an SDL endpoint at the ready.</span>
-          Claude Code spent multiple turns introspecting via <code>__schema { types }</code> queries to find the right mutation names. There's no surfaced SDL or "what mutations exist for X" page that an agent (or a human) can ask for. Each mutation discovery cost a round-trip and a few wrong guesses.
-          <span class="so-what">Publish the GraphQL SDL alongside the REST OpenAPI spec, and put both on a single "API reference" page that an agent can fetch and reason about in one read. This is small effort, high leverage for AI-driven workflows.</span>
+          <span class="what">Schema discovery requires <code>__schema</code> introspection.</span>
+          No surfaced SDL or "what mutations exist for X" page. Each discovery cost round-trips and wrong guesses.
+          <span class="so-what">Publish the GraphQL SDL alongside the REST OpenAPI spec on a single API reference page an agent can fetch in one read.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">03</div>
         <div class="body">
-          <span class="what">Annotation Configs registered via REST didn't show up in the trace UI's annotation panel.</span>
-          Same issue documented in section 01 friction 08, but worth restating in this context: an agent can correctly hit the documented API and still leave the human reviewer staring at "No annotation configurations for this project." The schema-data-UI loop has gaps that don't show up in API responses.
-          <span class="so-what">When the agent can write structured data correctly and the UI still shows it as missing, that's the kind of failure that erodes trust in the platform fastest. Auto-bind workspace configs to projects, or surface the binding step as part of the create flow.</span>
+          <span class="what">Annotation Configs created via REST don't show up in the trace UI panel.</span>
+          Same as section 01 friction 08. The agent writes structured data correctly; the UI still says "no configurations for this project."
+          <span class="so-what">Auto-bind workspace configs to projects, or surface the binding as part of the create flow.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">04</div>
         <div class="body">
-          <span class="what">Browser automation hit chrome-extension errors on Phoenix modal interactions.</span>
-          When I fell back to having Claude Code drive the UI directly via browser MCP, every click that opened a modal threw <code>Cannot access a chrome-extension:// URL of different extension</code>. Not Phoenix's fault, but the modal-heavy UI made browser automation an unreliable backup path. Real-world enterprise users with locked-down browsers will hit similar walls.
-          <span class="so-what">Where the workflow needs a modal, also expose a same-page panel or a deep-linkable URL. Modal-only flows are a "must use the UI a human is sitting in front of" assumption that doesn't survive contact with platform/automation users.</span>
+          <span class="what">Modal-heavy UI is hostile to browser automation.</span>
+          Every modal click via browser MCP threw <code>chrome-extension://</code> errors. Locked-down enterprise browsers will hit similar walls.
+          <span class="so-what">Where workflows need a modal, also expose a same-page panel or a deep-linkable URL.</span>
         </div>
       </div>
     </div>
 
     <div class="meta-note">
-      <b>Why this matters for Arize:</b> Alyx is positioned as the in-product agent for Phoenix users. Anything that blocks an external agent from driving Phoenix end-to-end will, by extension, constrain what Alyx can do for the customer. The eval-registration gap above is the highest-impact one — without it, Alyx can analyze a trace and recommend an evaluator, but cannot register and run it on the user's behalf.
+      <b>Why this matters for Arize:</b> Alyx is the in-product agent. Anything blocking external agents from driving Phoenix end-to-end constrains what Alyx can do for the customer. Eval-registration is the highest-impact gap.
     </div>
   </div>
 </section>

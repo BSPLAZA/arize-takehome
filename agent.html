@@ -602,31 +602,8 @@
     <div class="editorial">
       <ul>
         <li>Sonnet errs strict (false positives). Opus errs charitable (false negatives)</li>
-        <li>For Tool Bypass, <strong>false negatives are the expensive error</strong> — a phantom that slips through is the bug I'm trying to catch</li>
-        <li>Prescription: Sonnet primary, ensemble with Opus, auto-trust only when both agree, route disagreement (4/16 here) to human review</li>
-      </ul>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">How this relates to Phoenix's existing Faithfulness evaluator.</h3>
-
-    <div class="editorial">
-      <ul>
-        <li>Phoenix already ships <code>FaithfulnessEvaluator</code>. Same dataset: <strong>9/16 (56%)</strong></li>
-        <li>Catches all 7 real phantoms — but false-flags 7 of 9 grounded responses as unfaithful. Dashboard stops being trustworthy inside a week</li>
-        <li>Same family. Faithfulness: "does output follow from context?" Tool Bypass: "does this <em>action claim</em> follow from the <em>tool spans</em> in this trace?"</li>
-        <li>Tool Bypass = trace-aware specialization with explicit boundary cases (date-numeric collisions, self-corrections, quoted historical claims) baked in</li>
-        <li>Lands as sibling to Faithfulness, or as a new mode on it. PM call</li>
-        <li>Caveat: I tuned Tool Bypass against this set and didn't re-tune Faithfulness. Not a clean head-to-head</li>
-      </ul>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What this dataset can and can't tell us.</h3>
-
-    <div class="editorial">
-      <ul>
-        <li>n=16 is a unit test, not a benchmark. 11 audit-flagged + 5 hand-picked grounded</li>
-        <li>One-row swing moves Sonnet 81–94%. 95% CIs overlap. Judge prompt was iterated against this set, so some overfit</li>
-        <li>Next: 100+ adversarial set, held-out test split, two hand-grading passes for inter-rater agreement, cases I didn't author</li>
+        <li>For Tool Bypass, <strong>false negatives are the expensive error</strong> — Sonnet primary, Opus as ensemble, route disagreement (4/16 here) to human review</li>
+        <li>n=16 is a unit test, not a benchmark — full Faithfulness comparison + benchmark caveats in <a href="proposal.html#section-05">/proposal</a></li>
       </ul>
     </div>
   </div>
@@ -640,33 +617,10 @@
 
     <div class="editorial">
       <ul>
-        <li>30 days, 5 users, 169 turns. Audit flagged 11; hand-graded as <strong>7 real phantoms + 4 false positives</strong></li>
-        <li>False positives clustered: date-numeric collisions, self-quoting corrections, classifier context loss</li>
-        <li>All 7 phantoms predated Luke's v50 layered defense. <strong>Six days post-v50: zero new phantoms</strong></li>
-        <li>Script: <code>scripts/audit_conversations.py</code>. Phoenix fork carries proof-of-concept evaluator</li>
-      </ul>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the audit didn't see, and only Phoenix surfaced</h3>
-
-    <div class="editorial">
-      <ul>
-        <li>Audit reads <code>conversation_log</code> — DM-tagged only. Group chat, scheduled jobs, weekly digest: all silent</li>
-        <li>First 30 minutes of Phoenix: <strong>38 traces</strong>. Same window in <code>conversation_log</code>: <strong>0</strong></li>
-        <li>The audit was confidently scanning a third of the surface. Phoenix saw the whole thing the moment it turned on</li>
-        <li>Fix shipped (<a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>) — now dual coverage, not "Phoenix sees, SQL guesses"</li>
-      </ul>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the phantoms cost the users</h3>
-
-    <div class="editorial">
-      <ul>
-        <li><strong>6 of 7 phantoms went undetected at the moment they happened</strong></li>
-        <li>Users acted on phantom state — I logged more food after a fake "goal hit"; Cam logged a workout after a phantom water confirm</li>
-        <li>Cost isn't the failure turn. It's the downstream actions taken on confirmed-but-fake state. Full cascade in <a href="proposal.html#section-04">/proposal section 04</a></li>
-        <li>Recovery came hours later as verification questions: <em>"What have I eaten"</em>, <em>"How many cups of water I at"</em></li>
-        <li>Frequency of unprompted state-verification queries = trust-loss signal</li>
+        <li>30 days, 5 users, 169 turns → 11 flagged, <strong>7 real phantoms + 4 false positives</strong></li>
+        <li>All 7 predated Luke's v50 defense. <strong>Six days post-v50: zero</strong></li>
+        <li><strong>6 of 7 went undetected in the moment</strong> — users acted on phantom state, recovered hours later via verification questions</li>
+        <li>First 30 min of Phoenix: 38 traces. Same window in <code>conversation_log</code>: 0. Audit was scanning a third of the surface</li>
       </ul>
     </div>
 
@@ -674,14 +628,12 @@
       <img src="screenshots/00b-telegram-phantom-verification.png" style="display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;">
     </figure>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What Phoenix still doesn't see</h3>
 
     <div class="editorial">
       <ul>
-        <li>I sent: <em>"Luke, show me a picture of what you look like."</em> Luke didn't respond</li>
-        <li>No trace in Phoenix. Handler short-circuited before reaching Anthropic</li>
-        <li>Current instrumentation sees Anthropic API calls only — no spans at handler entry or Telegram egress</li>
-        <li>Tool Bypass: "called LLM, claimed action, didn't fire tool." <strong>Handler Bypass</strong> = "received message, skipped LLM, never told user why" — natural extension</li>
+        <li>Sent: <em>"Luke, show me a picture of what you look like."</em> Luke didn't respond. No trace in Phoenix — handler short-circuited before the LLM call</li>
+        <li>Tool Bypass = LLM called, action claimed, tool never fired. <strong>Handler Bypass</strong> = message received, LLM skipped, user never told why. Natural next primitive</li>
       </ul>
     </div>
   </div>
