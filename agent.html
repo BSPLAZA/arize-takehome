@@ -425,7 +425,7 @@
   <div class="container">
     <div class="eyebrow">the agent</div>
     <h1>Luke.</h1>
-    <p class="sub">A Telegram-native LLM agent that runs a 75-day habit-accountability challenge for a closed group of friends. Built on Anthropic. Deployed to Fly. Ninety-eight tests passing. Instrumented with Phoenix as of today.</p>
+    <p class="sub">A Telegram LLM agent running a 75-day habit-accountability challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 98 tests passing. Instrumented with Phoenix today.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div><a href="https://github.com/BSPLAZA/75-hard">github.com/BSPLAZA/75-hard</a></div>
@@ -441,8 +441,8 @@
     <h2>Six users, twenty-seven tools, one daily card.</h2>
 
     <div class="editorial">
-      <p>Luke runs the 75 Hard challenge for a closed Telegram group. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM conversation in Bryan's voice. One shared group chat where the agent posts daily cards and milestones.</p>
-      <p>To be precise about scale: this is a production deployment of a personal-use agent. Six friends run the 75-day challenge through it in real time. The agent handles backfills, undo, food vision, transformation timelapses, and the daily rhythm of nudges. <em>It also lies sometimes.</em> That's the trace at the heart of the proposal. Five users isn't an enterprise customer load; it's enough live traffic to surface real failure modes, which is what I needed for this submission.</p>
+      <p>Luke runs the 75 Hard challenge for a closed Telegram group. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM in Bryan's voice. One shared group chat where the agent posts daily cards and milestones.</p>
+      <p>Scale, plainly: six friends run the 75-day challenge through it in real time. The agent handles backfills, undo, food vision, transformation timelapses, and the daily nudges. It also lies sometimes. That's the trace the proposal turns on. Six users isn't an enterprise load; it's enough live traffic to surface real failure modes.</p>
     </div>
 
     <div class="stats">
@@ -468,29 +468,14 @@
       </div>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A typical exchange</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A typical exchange (live, captured while writing this)</h3>
 
-    <div class="tg-frame">
-      <div class="tg tg-incoming">
-        <div class="tg-name">Cam</div>
-        ran 3 miles outside, 27 min
-        <div class="tg-time">7:14 AM</div>
+    <div class="ss" style="margin-top: 16px;">
+      <div class="caption">
+        <span class="filename">00-telegram-luke-live.png</span>
+        <span>Bryan's actual Luke DM. The grid is Luke's compliance dashboard for days 1-17 of the 75-day challenge. Below it: a typical food-log exchange. The "117/170, 53 to go" and "122/170, 48 to go" responses are the same shape as the phantoms in the audit. This time the tool fired and the numbers match real database state.</span>
       </div>
-      <div class="tg tg-outgoing">
-        <div class="tg-name">Luke (the agent)</div>
-        nice. workout 1 logged. one more to go today, plus your water and reading.
-        <div class="tg-time">7:14 AM</div>
-      </div>
-      <div class="tg tg-incoming">
-        <div class="tg-name">Cam</div>
-        had a salad for lunch, 350 cal
-        <div class="tg-time">12:38 PM</div>
-      </div>
-      <div class="tg tg-outgoing">
-        <div class="tg-name">Luke (the agent)</div>
-        diet logged. you're on track for today.
-        <div class="tg-time">12:38 PM</div>
-      </div>
+      <img src="screenshots/00-telegram-luke-live.png" alt="Live Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--rule); border-radius: 4px;">
     </div>
   </div>
 </section>
