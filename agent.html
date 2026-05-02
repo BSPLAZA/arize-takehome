@@ -709,6 +709,15 @@
     <div class="editorial" style="margin-top: 24px;">
       <p><b>Six of seven phantoms went undetected at the moment they happened.</b> Users acted on the phantom state. Bryan logged more food after a "goal hit" celebration; Cam logged a workout after a phantom water confirm. The bug's cost isn't measured at the failure turn. It's measured in what users did downstream while trusting confirmed-but-fake state.</p>
       <p>The recovery signal, when it came, was a verification question: <em>"What have I eaten"</em> (Bryan, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable behavior, an Eval primitive in their own right: <strong>frequency of unprompted state-verification queries</strong> as a proxy for trust loss. A team like Arize ships the eval and the metric together. The eval catches the bug; the metric confirms users are acting on stale or wrong state.</p>
+      <p>And then there's the recovery signal users send that <em>doesn't</em> route through verification queries: they DM Bryan directly. Cam, the same user whose water phantom started this whole investigation, sent this message on April 20:</p>
+    </div>
+
+    <div class="ss" style="margin-top: 16px;">
+      <div class="caption">
+        <span class="filename">00b-telegram-cam-complaint.png</span>
+        <span>Cam's actual DM to Bryan, April 20. Same user as audit row #103. The phrase "Luke has been bugging out" is Cam's own diagnosis; "it erased your progress" is the cost. This is the trust-loss signal the Tool Bypass evaluator is trying to catch <em>before</em> users have to send it.</span>
+      </div>
+      <img src="screenshots/00b-telegram-cam-complaint.png" alt="Cam's DM to Bryan complaining that Luke has been bugging out and erasing progress" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--rule); border-radius: 4px;">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
