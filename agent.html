@@ -438,11 +438,11 @@
 <section class="body">
   <div class="container">
     <div class="label">section 01 · what it does</div>
-    <h2>Six users, twenty-seven tools, one daily card.</h2>
+    <h2>Five users, twenty-seven tools, one daily card.</h2>
 
     <div class="editorial">
-      <p>Luke runs the 75 Hard challenge for a closed Telegram group. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM in my voice. One shared group chat where the agent posts daily cards and milestones.</p>
-      <p>Six friends are running the challenge through it right now. The agent handles backfills, undo, food vision, transformation timelapses, daily nudges. It also lies sometimes. Six users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
+      <p>Luke runs the 75 Hard challenge for a closed Telegram group of five friends plus the bot itself. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM in my voice. One shared group chat where the agent posts daily cards and milestones.</p>
+      <p>The agent handles backfills, undo, food vision, transformation timelapses, daily nudges. It also lies sometimes. Five users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
     </div>
 
     <div class="stats">
@@ -451,8 +451,8 @@
         <div class="lab">tools registered</div>
       </div>
       <div>
-        <div class="num">6</div>
-        <div class="lab">daily-active users</div>
+        <div class="num">5</div>
+        <div class="lab">daily-active human users</div>
       </div>
       <div>
         <div class="num">169</div>
@@ -709,6 +709,15 @@
     <div class="editorial" style="margin-top: 24px;">
       <p><b>Six of seven phantoms went undetected at the moment they happened.</b> Users acted on the phantom state. I logged more food after a "goal hit" celebration. Cam logged a workout after a phantom water confirm. The bug's cost isn't at the failure turn. It's in what users did downstream while trusting confirmed-but-fake state.</p>
       <p>When recovery did come, it came as a verification question: <em>"What have I eaten"</em> (me, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable signal, an eval primitive in their own right: frequency of unprompted state-verification queries as a proxy for trust loss. A team like Arize ships the eval and the metric together. The eval catches the bug; the metric confirms users are acting on stale state.</p>
+      <p>Here's what one of those phantoms looks like in the chat itself, reconstructed from a real production turn (timestamps and grid are unmodified):</p>
+    </div>
+
+    <div class="ss" style="margin-top: 16px;">
+      <div class="caption">
+        <span class="filename">00b-telegram-phantom-verification.png</span>
+        <span>Luke confirms two food entries with running calorie totals at 06:29 PM, then admits the diet log has zero entries when I ask about it the next morning. The compliance grid above is from the same exchange. This is the trust-loss verification signal the Tool Bypass evaluator is built to catch <em>before</em> a user has to send it.</span>
+      </div>
+      <img src="screenshots/00b-telegram-phantom-verification.png" alt="Telegram chat showing Luke confirming food entries then admitting the log is empty the next day" style="display: block; width: 100%; max-width: 580px; height: auto; border: 1px solid var(--rule); border-radius: 4px;">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
