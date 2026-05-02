@@ -567,7 +567,7 @@
         <span class="filename">01-phoenix-trace-list.png</span>
         <span>the luke-75-hard project, with traces from real production conversations</span>
       </div>
-      <img src="screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="../agent/screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <div class="ss">
@@ -575,7 +575,7 @@
         <span class="filename">04-span-tree.png</span>
         <span>trace detail panel: span tree, status, cost, latency, and the empty-state annotation panel</span>
       </div>
-      <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="../agent/screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
@@ -584,7 +584,7 @@
       <p>The eval primitive in the proposal isn't just a code artifact. After Phoenix deployed and prod traffic flowed in, I ran a regex-based Tool Bypass classifier against all <strong>57</strong> production spans in the project, then pushed the results back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric in the same row as Total Cost and Latency.</p>
       <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
       <p>The same regex variant, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 instructive false positives</strong> (full table in <a href="proposal.html#section-04">/proposal section 04</a>). The eval catches the failure when the failure exists; passes cleanly when the layered defense holds.</p>
-      <p>I also ran the <strong>full LLM-judge <code>ClassificationEvaluator</code></strong> from the Phoenix fork: Anthropic Claude Haiku 4.5 as judge, the YAML-defined prompt, against the same eleven flagged turns plus five known-grounded reference turns. Honest result: <strong>regex got 13/16 correct (81%), LLM-judge got 11/16 (69%)</strong>. The LLM correctly handled the boundary case regex couldn't (the "4/16" calendar-date collision), but produced two false-negatives on "goal hit" turns where it could see the tool name but not the tool result. Named failure: the prompt's <code>tool_spans</code> input is just call names, not call results. Adding result-context fixes both. <a href="proposal.html#section-05">Detailed comparison table in /proposal section 05.</a></p>
+      <p>I also ran the <strong>full LLM-judge <code>ClassificationEvaluator</code></strong> from the Phoenix fork against the same eleven flagged turns plus five known-grounded references, with two judges to test the cost/quality spectrum: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Result: <strong>Sonnet 14/16 (88%), beating regex; Haiku 11/16 (69%), losing to regex.</strong> Same prompt, same data. Phoenix's existing <code>ToolSelectionEvaluator</code> as a baseline: 12/16 (75%). Sonnet correctly handled the boundary case regex couldn't (the "4/16" calendar-date collision); Haiku managed that one too but false-negatived on "goal hit" turns where the tool fired but it couldn't bridge to the resulting state from the tool name alone. <strong>Model capability matters at the eval layer.</strong> <a href="proposal.html#section-05">Detailed comparison table in /proposal section 05.</a></p>
     </div>
 
     <div class="ss">
@@ -592,7 +592,24 @@
         <span class="filename">05-tool-bypass-eval-running.png</span>
         <span>Phoenix project header with <code>tool_bypass μ 1.00</code> alongside Total Cost and Latency. Per-row annotations populate the Annotations column.</span>
       </div>
-      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="../agent/screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the validation set durable as a Phoenix Dataset, and the run reproducible as a Phoenix Experiment.</h3>
+
+    <div class="editorial">
+      <p>Comparing four evaluators in a notebook is a one-shot artifact. The next person who wants to test a different prompt, a different model, or a different temperature has to set up the harness from scratch. Phoenix has primitives for exactly this gap: <strong>Datasets</strong> (a fixed set of examples with ground truth) and <strong>Experiments</strong> (a saved run of a task + evaluators against a Dataset, comparable side-by-side in the UI).</p>
+      <p>I uploaded the 16-turn validation set as a Phoenix Dataset called <strong><code>tool_bypass_validation_v1</code></strong> via <code>client.datasets.create_dataset</code>. The 11 regex-flagged turns (7 true phantoms, 4 false-positive boundary cases across the three named classes) plus 5 known-grounded reference turns. Each row carries the input, the assistant output, the tool spans observed in the trace, the available tool surface, the ground-truth label I hand-graded, and metadata for the false-positive class.</p>
+      <p>Then I ran the LLM-judge as a Phoenix Experiment via <code>client.experiments.run_experiment</code>: the task is the <code>ClassificationEvaluator</code> with Sonnet 4.6 returning <code>{label, score, explanation}</code>; the evaluator is a <code>matches_ground_truth</code> function comparing the judge's label to the dataset's ground truth. <strong>Result: 14/16 match (87.5%), the same two mismatches the notebook run produced.</strong> The two failures were on the boundary cases all four evaluators struggled with: <code>#41</code> (jailbreak attempt with confused tool sequencing) and <code>#194</code> (self-correcting follow-up that quotes a prior phantom).</p>
+      <p>The Experiment is saved in Phoenix. The next iteration of the eval, whatever it is, points at the same Dataset, runs as a new Experiment, and shows up next to <code>tool_bypass_sonnet_4_6</code> in the UI's compare view. That's the platform value: <em>regression testing for evals</em>, treated as a first-class workflow rather than a notebook habit.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">06-phoenix-experiment.png</span>
+        <span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: the <code>tool_bypass_sonnet_4_6</code> run is selected, with the matching-ground-truth evaluator scored 1.00 on the visible row, AVG 3.8s judge latency, and the dataset's input/reference output columns alongside the experiment's output.</span>
+      </div>
+      <img src="../agent/screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
   </div>
 </section>
