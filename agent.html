@@ -666,7 +666,21 @@
 
       <p>Opus correctly handles the two boundary cases Sonnet missed (the self-correction and the in-character role-play): exactly the cases v2's prompt edits were designed for. But Opus then fails on two genuine phantoms that Sonnet caught. <strong>Symmetric in count, asymmetric in cost.</strong> Sonnet errs <em>strict</em>: false-positive phantom flags (a recovery or a role-play gets flagged for review). Opus errs <em>charitable</em>: false-negative phantom misses (a real phantom passes through unflagged). For a Tool Bypass evaluator, false negatives are the more expensive error: a phantom that slips through is the bug we're trying to catch. <strong>Sonnet wins on cost-of-error even though they tie on accuracy.</strong></p>
       <p>The prescription the data actually supports: <strong>keep Sonnet as the primary judge; ensemble with Opus and only auto-trust the calls where both agree.</strong> The disagreement set (4 of 16 rows on this dataset) routes to human review, exactly the place a structured Annotation Config + the trace-detail UI is supposed to support, the gap I called out three sections up. The eval, the model, the annotation flow, the validation set: they're a system. The platform makes that system inspectable and iterable in a way no notebook does.</p>
-      <p>That's what the Phoenix loop unlocks: <em>Dataset frozen as ground truth · Prompt versioned in the registry · one Experiment per (prompt × model) combination · Compare view showing which rows changed direction and which didn't · cost-of-error analysis pulling the actual product decision out of three runs that all looked the same on the headline number.</em> Eval iteration as a data-driven workflow, with the platform exposing both the answers and the questions you didn't think to ask.</p>
+
+    <h4 style="font-family: var(--serif); font-weight: 500; font-size: 19px; margin: 36px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Why a custom evaluator and not the built-in.</h4>
+
+      <p>Before building the custom Tool Bypass evaluator, the obvious question: <em>doesn't Phoenix already have something for this?</em> It does. Phoenix's built-in <code>FaithfulnessEvaluator</code> measures whether an output is faithful to a given context. The shape maps cleanly: input = user message, output = assistant claim, context = tool spans. <strong>So I ran it as a fifth experiment against the same Dataset.</strong></p>
+      <p><strong>Result: 9/16 (56%). The custom evaluator beats it by 31 percentage points.</strong> Looking at the per-row diff: FaithfulnessEvaluator catches all 7 phantoms (perfect recall on the bug we're trying to find) but false-flags 7 of 9 grounded responses as "unfaithful." It defaults to skeptical. In production, that false-positive rate destroys the eval's utility, every other turn shows up as a bug to investigate, the team stops trusting the dashboard within a week.</p>
+      <p><strong>The reason the built-in falls short isn't model choice; it's structural.</strong> Tool Bypass is a <em>trace-aware</em> classification: the assistant's claim has to be evaluated against the specific tool spans observed in the same trace, with explicit boundary cases for date-numeric collisions, self-corrections, and quoted historical claims. A generic faithfulness check has none of that scaffolding. The custom evaluator isn't bespoke ego work, it's the structural awareness the trace shape requires. The Phoenix Experiments primitive made the comparison cheap: same dataset, same rows, same scoring function, two extra runs.</p>
+      <p>That's the loop the Phoenix surface unlocks: <em>Dataset frozen as ground truth · Prompt versioned in the registry · one Experiment per (prompt × model × evaluator) combination · Compare view showing which rows changed direction and which didn't · cost-of-error and built-in-vs-custom analyses pulling the actual product decision out of runs that look the same on the headline number.</em> Eval iteration as a data-driven workflow, with the platform exposing both the answers and the questions you didn't think to ask.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">14-four-evaluator-metrics.png</span>
+        <span>Phoenix Metrics view across four experiments: <code>matches_ground_truth</code> = 0.87 for v1-Sonnet, v2-Sonnet, v3-Opus (all 14/16), and <strong>0.56 (down 36%) for the built-in <code>FaithfulnessEvaluator</code></strong> (9/16). One glance at the bar chart and the build-vs-buy decision is concrete instead of vibes-driven.</span>
+      </div>
+      <img src="../agent/screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments with custom Tool Bypass and built-in Faithfulness evaluators" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <div class="ss">
@@ -723,6 +737,29 @@ async def chat_with_luke(message, db, user_id, ...):
         <span>The bryan-day-7 session opened: 3 traces grouped, 361 total tokens, the right-hand panel listing each turn with timestamp and cost. The <em>"What have I eaten today?"</em> verification query, the recovery signal we identified in the audit, would land here as the third turn under the same session as the phantom that triggered it. Trust-loss signals stop being a SQL detective game and become a session-detail navigation.</span>
       </div>
       <img src="../agent/screenshots/13-phoenix-session-detail.png" alt="Phoenix session detail view showing turns grouped under bryan-day-7" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And one more proof: OpenInference spans aren't just for LLM calls.</h3>
+
+    <div class="editorial">
+      <p>The audit pipeline itself is a non-LLM operation: read SQLite, run regex, classify rows, emit a flagged set. Easy to write as a CLI; harder to make legible to a teammate three weeks from now who's wondering "why was row 162 flagged?" The Phoenix surface answers it: <strong>any operation with inputs, outputs, and structure can be a span.</strong> I wrapped <code>audit_conversations.run</code> in <code>tracer.start_as_current_span("audit_conversations.run")</code> and each per-row classifier as a child span with <code>OPENINFERENCE_SPAN_KIND = "tool"</code>, <code>tool_bypass.label</code>, <code>audit.row_id</code>, <code>audit.user</code>. Phoenix renders the audit run as a structured trace next to the LLM traces, in the same project view, with the same filter syntax.</p>
+      <p>That makes the answer to <em>"why was this row flagged?"</em> a trace-detail click instead of a code-spelunk. It also lets the same Tool Bypass evaluator we built run against <em>both</em> the live agent's LLM spans <em>and</em> the audit pipeline's classifier spans, with a single filter expression: <code>evals["tool_bypass"].label == "phantom"</code>. One workspace, one filter, one annotation schema, two completely different upstream sources.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">15-non-llm-audit-trace.png</span>
+        <span>The audit pipeline as a Phoenix trace in <code>luke-audit-pipeline-demo</code>: outer <code>audit_conversations.run</code> chain span with three child <code>classify_row[N]</code> tool spans, each carrying custom attributes (<code>audit.row_id</code>, <code>audit.user</code>, <code>tool_bypass.label</code>). Same trace renderer, same filter syntax, no LLM call required.</span>
+      </div>
+      <img src="../agent/screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline emitted as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">16-filtered-by-eval-label.png</span>
+        <span>The luke-75-hard project filtered by <code>evals["tool_bypass"].label == "grounded"</code>. The annotations we pushed earlier roll up into the project header (<code>tool_bypass μ 1.00</code>) and become a queryable column on every span. The URL itself is the saved filter: bookmark it, share it in a PR, drop it into the standup doc; anyone who opens the link lands on the same filtered view of production traffic.</span>
+      </div>
+      <img src="../agent/screenshots/16-filtered-by-eval-label.png" alt="Phoenix project view filtered by tool_bypass eval label" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
   </div>
 </section>
