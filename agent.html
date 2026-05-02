@@ -692,6 +692,38 @@
       </div>
       <img src="../agent/screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs showing 0.87 accuracy and varying latency" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the "what the user did next" navigation a first-class workflow with Phoenix Sessions.</h3>
+
+    <div class="editorial">
+      <p>The user-impact analysis above (the "What the phantoms cost the users" table) was assembled with SQL queries and a manual scan of <code>conversation_log</code>. That's a one-time artifact. The platform-native equivalent is <strong>Phoenix Sessions</strong>: spans tagged with <code>session.id</code> and <code>user.id</code> via OpenInference's <code>using_session</code> / <code>using_user</code> context managers, automatically grouped in the UI as a multi-turn session view.</p>
+      <p>Luke's current instrumentation (<code>AnthropicInstrumentor().instrument()</code>) doesn't tag spans with session metadata. Each LLM call is a flat trace. To prove the Sessions UI works for Luke's use case, I wrote a small demo script that reconstructs three real conversation arcs from the audit (Bryan's day-7 protein cascade, Cam's Apr 16 phantom, Kat's water self-correction) and emits them into a separate <code>luke-sessions-demo</code> project, each turn wrapped in <code>using_session(session_id=f"{user_id}-day-{N}")</code> + <code>using_user(user_id=...)</code>. The Sessions tab in the UI populates immediately: three sessions, each with its turn count, cumulative cost, p50 latency, and a session-detail view showing the conversation arc as a chronological turn list.</p>
+      <p>The day-2 instrumentation patch for Luke is two lines at the top of <code>chat_with_luke()</code>:</p>
+      <pre style="background: #fafaf9; padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; border: 1px solid var(--rule); margin: 12px 0;"><code>from openinference.instrumentation import using_session, using_user
+
+async def chat_with_luke(message, db, user_id, ...):
+    day_index = await db.get_user_day(user_id)
+    with using_session(session_id=f"{user_id}-day-{day_index}"), using_user(user_id=str(user_id)):
+        ...</code></pre>
+      <p>That's it. Every LLM span emitted under that block automatically picks up the session.id and user.id attributes Phoenix uses to group. The audit's narrative ("six of seven phantoms went undetected at the moment they happened, recovery came 18h later") becomes a one-click navigation: open the user's session, scroll the turn list, see the recovery query as a span in the same session as the phantom. The <em>"frequency of unprompted state-verification queries as a proxy for trust loss"</em> metric I proposed earlier is one SQL-against-Phoenix-spans query away once Sessions are flowing: <code>COUNT(*) WHERE input.value REGEXP 'what (have I|did I)' GROUP BY session.id</code>.</p>
+      <p>I deliberately put these spans in a separate project rather than polluting <code>luke-75-hard</code>'s production metrics. The proof-of-life is here; the merge is Luke's call.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">12-phoenix-sessions-list.png</span>
+        <span>The Sessions tab of <code>luke-sessions-demo</code> populated by the OpenInference <code>using_session</code> context manager: three reconstructed user arcs (kat-day-5, cam-day-3, bryan-day-7), each with its first input, last output, turn-level p50 latency, and aggregated annotations column. Phoenix groups multiple LLM spans into a session entirely from a single span attribute.</span>
+      </div>
+      <img src="../agent/screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view showing three reconstructed user sessions" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">13-phoenix-session-detail.png</span>
+        <span>The bryan-day-7 session opened: 3 traces grouped, 361 total tokens, the right-hand panel listing each turn with timestamp and cost. The <em>"What have I eaten today?"</em> verification query, the recovery signal we identified in the audit, would land here as the third turn under the same session as the phantom that triggered it. Trust-loss signals stop being a SQL detective game and become a session-detail navigation.</span>
+      </div>
+      <img src="../agent/screenshots/13-phoenix-session-detail.png" alt="Phoenix session detail view showing turns grouped under bryan-day-7" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
   </div>
 </section>
 
