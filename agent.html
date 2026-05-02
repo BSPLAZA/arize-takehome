@@ -611,6 +611,31 @@
       </div>
       <img src="../agent/screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I closed the trace-to-eval loop with a Phoenix Annotation Config, and surfaced a new product gap doing it.</h3>
+
+    <div class="editorial">
+      <p>Friction note #5 in the workflow feedback: <em>the trace-to-eval handoff is Python-only.</em> A reviewer staring at a trace in the Phoenix UI can read the spans but can't apply a structured label without dropping into a notebook. Phoenix has the right primitive for this: <strong>Annotation Configs</strong>, schema definitions that give labels a fixed shape (categorical / continuous / freeform) so any annotation a human or evaluator pushes back conforms to the schema and rolls up cleanly to project-level metrics.</p>
+      <p>I created a <code>tool_bypass</code> categorical annotation config via the REST API (<code>POST /v1/annotation_configs</code>): <code>grounded</code> = 1.0, <code>phantom</code> = 0.0, <code>optimization_direction = MAXIMIZE</code>. Visible immediately in workspace settings. Then I pushed three real human annotations onto the most recent production spans via <code>log_span_annotations_dataframe</code> and watched them land: the trace-detail panel's <strong>Annotation Summary</strong> section now shows <code>tool_bypass μ 1.00</code> on the annotated trace, and the project-level header shows the same metric rolled up across all 57 spans.</p>
+      <p>That's two of the three layers of the closed loop working: schema and programmatic annotations. The third layer, the <em>click-to-annotate</em> UI from the trace detail view, is where I hit a real gap. The "Edit Annotations" panel reads <strong>"No annotation configurations for this project"</strong> even though the workspace-level config exists and is publishing annotations onto this project's spans. The config is workspace-scoped via REST, but the UI's edit affordance requires a project-level binding I couldn't find an endpoint for. The reviewer staring at a trace still can't structurally label it from the UI without that binding.</p>
+      <p>That gap is now a fresh, named friction note (added to the <a href="feedback.html#friction">feedback page</a>), with a concrete repro: schema exists at workspace level, annotations land via API, but the trace-detail UI's annotation editor has nothing to offer the reviewer because the per-project binding isn't reachable from the public REST surface in 15.1.0. The fix is small (expose the binding endpoint, or auto-bind workspace configs to all projects, or a UI affordance under project settings). The product impact is real: it's the difference between Tool Bypass being a Python primitive and Tool Bypass being something a non-engineering reviewer can apply during a trace review.</p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">07-annotation-config.png</span>
+        <span>Phoenix workspace settings → Annotations: <code>tool_bypass</code> Categorical config, with the two values <code>grounded</code> / <code>phantom</code> bound to scores 1.0 / 0.0. Created via REST without leaving the agent's repo.</span>
+      </div>
+      <img src="../agent/screenshots/07-annotation-config.png" alt="Phoenix workspace Annotations settings page showing the tool_bypass categorical annotation config" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">08-trace-detail-annotation.png</span>
+        <span>Trace detail panel for a luke-75-hard span: the <strong>Annotation Summary</strong> shows <code>tool_bypass μ 1.00</code> from the API push (working). The <strong>Edit Annotations</strong> panel below it reads <em>"No annotation configurations for this project"</em> (the gap): workspace-level config doesn't auto-attach to project-level click-to-annotate UI in 15.1.0.</span>
+      </div>
+      <img src="../agent/screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with Annotation Summary populated and Edit Annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
   </div>
 </section>
 

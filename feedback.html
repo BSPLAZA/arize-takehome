@@ -444,6 +444,15 @@
           <span class="so-what">Add a slug or short-id alongside the base64. Default to the slug in the URL bar. Keep the base64 as the canonical id for the API.</span>
         </div>
       </div>
+
+      <div class="friction">
+        <div class="num">08</div>
+        <div class="body">
+          <span class="what">Annotation Configs are workspace-wide via REST, but the trace-detail "Edit Annotations" panel needs a per-project binding I couldn't reach via the public API.</span>
+          I created <code>tool_bypass</code> as a categorical annotation config via <code>POST /v1/annotation_configs</code> (200 OK). Pushed annotations onto recent spans via <code>log_span_annotations_dataframe</code> (200 OK). The trace-detail panel's <strong>Annotation Summary</strong> shows them rolled up. But the <strong>Edit Annotations</strong> panel right below reads <em>"No annotation configurations for this project."</em> The schema and the data flow work; the click-to-annotate UI doesn't pick them up. <code>POST</code> and <code>PUT</code> to <code>/v1/projects/{id}/annotation_configs</code> both return 405. So a reviewer in the trace UI still can't structurally label a span without a Python notebook.
+          <span class="so-what">Auto-bind workspace configs to all projects, expose the binding endpoint over REST, or surface a "use in this project" toggle on the workspace settings page. The fix is small. The product impact is real: structured annotations stop being a Python-only workflow and become reachable for any reviewer in the trace detail UI.</span>
+        </div>
+      </div>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What worked well</h3>
