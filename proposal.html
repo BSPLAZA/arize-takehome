@@ -181,6 +181,10 @@
   }
   .editorial p { margin: 0 0 22px; }
   .editorial p:last-child { margin-bottom: 0; }
+  .editorial ul { padding-left: 1.4em; margin: 0 0 22px; }
+  .editorial li { margin: 0 0 12px; line-height: 1.5; }
+  .editorial li:last-child { margin-bottom: 0; }
+  .editorial li::marker { color: var(--accent); }
   .editorial b { font-weight: 600; color: var(--ink); }
   .editorial em { color: var(--accent); font-style: italic; }
   .editorial .underline-accent {
@@ -834,7 +838,7 @@
     </div>
 
     <div class="editorial" style="margin-bottom: 28px;">
-      <p>The implementation lives in the Phoenix fork as a <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclass following the existing module pattern: a YAML config in <span style="font-family: var(--mono);">prompts/classification_evaluator_configs/</span>, a generated config compiled via <span style="font-family: var(--mono);">make codegen-prompts</span>, and a 30-line class registered through <span style="font-family: var(--mono);">metrics/__init__.py</span>:</p>
+      <p>Implementation: a <code>ClassificationEvaluator</code> subclass following the existing module pattern. YAML prompt config + generated Python config via <code>make codegen-prompts</code> + 30-line class.</p>
     </div>
 
     <div class="code-frame">
@@ -866,7 +870,7 @@
     </div>
 
     <div class="editorial" style="margin: 28px 0 16px;">
-      <p>The YAML compiles via <span style="font-family: var(--mono);">make codegen-prompts</span> into a generated Python config in <span style="font-family: var(--mono);">__generated__/classification_evaluator_configs/</span>, exactly like Phoenix's other nine classification evaluators. The class itself is a thin subclass of <span style="font-family: var(--mono);">ClassificationEvaluator</span>:</p>
+      <p>Compiles like Phoenix's other nine classification evaluators. The class itself is thin:</p>
     </div>
 
     <div class="code-frame">
@@ -902,8 +906,11 @@
     </div>
 
     <div class="editorial">
-      <p>The 32-line file follows <span style="font-family: var(--mono);">tool_invocation.py</span> and the eight other <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclasses already in metrics. Three other files get touched: <span style="font-family: var(--mono);">metrics/__init__.py</span> gains the import (+2 lines), <span style="font-family: var(--mono);">tests/phoenix/evals/metrics/test_classification_evaluators.py</span> gains a parametrize entry (+8 lines), and <span style="font-family: var(--mono);">README</span> gains a row (+1 line). One optional new file: <span style="font-family: var(--mono);">docs/source/tool_bypass.rst</span>.</p>
-      <p>Trace context (sibling tool spans) gets passed as part of the <span style="font-family: var(--mono);">eval_input</span> dict, the same way <span style="font-family: var(--mono);">tool_invocation</span> does it. No new evaluator interface needed.</p>
+      <ul>
+        <li>32-line file follows <code>tool_invocation.py</code> and the eight other <code>ClassificationEvaluator</code> subclasses</li>
+        <li>Three touch-point edits: <code>metrics/__init__.py</code> (+2), test fixture (+8), <code>README</code> (+1). One optional doc file</li>
+        <li>Trace context (sibling tool spans) passes via <code>eval_input</code> dict — same pattern as <code>tool_invocation</code>. No new interface needed</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -915,8 +922,11 @@
     <h2>Run on 169 real production turns. Form your own opinion.</h2>
 
     <div class="editorial" style="margin-bottom: 24px;">
-      <p>I pulled the agent's database, ran the eval over 30 days of conversation logs, and inspected every flagged turn by hand. The table below lets you second-guess the heuristic without trusting me.</p>
-      <p style="font-size: 16px; color: var(--muted); margin-top: 12px;"><b style="color: var(--ink-2); font-weight: 500;">Sample shape:</b> 169 turns across 5 active users (Bryan, Cam, Kat, Gaurav, Yumna), roughly 30 conversation sessions over 30 days. The 7 true positives represent 4 distinct phantom episodes (rows 1-2 are one Apr 22 protein-tracking session; rows 3-5 are one Apr 23 cross-day session; rows 6-7 are independent water phantoms on the same day across users).</p>
+      <ul>
+        <li>Pulled the agent's database, ran the eval over 30 days of conversation logs, hand-graded every flagged turn</li>
+        <li><strong>Sample shape:</strong> 169 turns, 5 active users, ~30 sessions over 30 days</li>
+        <li>The 7 true positives represent 4 distinct phantom episodes (rows 1–2 = Apr 22 protein session; rows 3–5 = Apr 23 cross-day session; rows 6–7 = independent same-day water phantoms across users)</li>
+      </ul>
     </div>
 
     <div class="audit-frame">
@@ -962,7 +972,10 @@
     <h2>The regex worked. It wasn't enough.</h2>
 
     <div class="editorial">
-      <p>The first version of the eval was a regex over assistant content. Patterns like <span style="font-family: var(--mono);">\d+\/16</span> for water counts and <span style="font-family: var(--mono);">\d+g</span> for grams of protein. It caught all seven real phantoms. It also caught the four false positives, which cluster into three precise failure modes:</p>
+      <ul>
+        <li>v1 was regex over assistant content: <code>\d+\/16</code> for water counts, <code>\d+g</code> for protein grams</li>
+        <li>Caught all 7 phantoms — and 4 false positives, clustered into three precise failure modes</li>
+      </ul>
     </div>
 
     <div class="fp-walk">
@@ -981,12 +994,15 @@
     </div>
 
     <div class="editorial">
-      <p>All three false-positive classes ask the same kind of question: is this assistant content actually claiming an action right now? Hypothesis: an LLM-as-judge handles this natively where a regex can't.</p>
-      <p style="margin-top: 16px;">So I tested it. Ran the LLM-judge <code>ClassificationEvaluator</code> against the eleven flagged turns plus five known-grounded references. Two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Compared each LLM verdict against the regex and against ground truth, and ran Phoenix's <code>ToolSelectionEvaluator</code> as a baseline. Real LLM calls, real verdicts:</p>
+      <ul>
+        <li>All three FP classes ask the same question: is this assistant content actually claiming an action right now?</li>
+        <li>Hypothesis: an LLM-as-judge handles this natively where a regex can't</li>
+        <li>Tested via Phoenix's <code>ClassificationEvaluator</code> against the 11 flagged + 5 grounded turns. Two judges spanning the cost/quality range: <strong>Sonnet 4.6</strong> and <strong>Haiku 4.5</strong>. Phoenix's <code>ToolSelectionEvaluator</code> as baseline</li>
+      </ul>
     </div>
 
     <div class="editorial" style="margin-bottom: 8px;">
-      <p style="font-size: 16px; color: var(--muted); margin: 0;"><b style="color: var(--ink-2); font-weight: 500;">Important caveat before reading the numbers below:</b> n=16 is a unit test, not a benchmark. The judge prompt was iterated on this same set, and I am the sole grader. Confidence intervals overlap heavily. Read these as directional signal about <em>which evaluator family</em> matches the problem shape, not as a leaderboard.</p>
+      <p style="font-size: 16px; color: var(--muted); margin: 0;"><b style="color: var(--ink-2); font-weight: 500;">Caveat:</b> n=16 is a unit test, not a benchmark. Prompt was iterated on this set; I am the sole grader; CIs overlap. Directional signal about <em>which evaluator family</em> matches the problem shape, not a leaderboard.</p>
     </div>
 
     <div class="audit-frame" style="margin-top: 8px;">
@@ -1013,11 +1029,13 @@
     </div>
 
     <div class="editorial" style="margin-top: 24px;">
-      <p><b>Headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to it. Phoenix's <code>ToolSelectionEvaluator</code> sits in between at 12/16 and misses the same two boundary cases Sonnet handled (ambiguous-input state claims, self-corrections that quote a prior phantom). Model capability and trace-aware framing both matter at the eval layer.</p>
-      <p><b>Deployment design:</b> regex as cheap pre-filter, Sonnet-class judge as boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension. Opus 4.7 on the v2 prompt also hit 14/16 but errors flipped to false-negatives, which cost more here than Sonnet's false-positives, so Sonnet stays primary.</p>
-      <p><b>Build-vs-buy check.</b> Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset: <strong>9/16</strong>. Catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. Shortfall is structural, not model: generic faithfulness has none of the trace-aware boundary scaffolding (date collisions, self-corrections, quoted historical claims). The honest framing is "specialized vs untuned generic on a specialized problem," not a tuned head-to-head.</p>
-      <p><b>Eval landscape.</b> LangSmith, Langfuse, Braintrust, and Weave all ship custom-eval runners; none ship a built-in that composes an assistant's action claim against the same trace's tool spans. The closest analogue is generic faithfulness scoring. Phoenix already has the trace context and the evaluator runtime. The library that ships a built-in action-grounding eval reads the trace the way the team building the agent already thinks about it.</p>
-      <p><b>Who feels this most.</b> Tool bypass costs are highest where a claimed state change has downstream consequences that are expensive to undo: finance ops, healthcare workflow agents, customer-success and refund agents, compliance copilots, CRM/ticketing automation. The wedge customer is a team that's already shipped an action-taking agent into a high-trust workflow and started asking "what fraction of our agent's claims are actually grounded?"</p>
+      <ul>
+        <li><b>Headline:</b> Sonnet 4.6 beats regex. Haiku loses to it. <code>ToolSelectionEvaluator</code> sits at 12/16, missing the same two boundary cases Sonnet handled. Model capability and trace-aware framing both matter</li>
+        <li><b>Deployment design:</b> regex as cheap pre-filter, Sonnet-class judge as boundary-case adjudicator, ToolSelection in parallel for wrong-tool detection. Opus 4.7 also 14/16 — errors flip to false-negatives, which cost more here, so Sonnet stays primary</li>
+        <li><b>Build-vs-buy:</b> Phoenix's <code>FaithfulnessEvaluator</code> on the same set: <strong>9/16</strong>. Catches all 7 phantoms but false-flags 7 of 9 grounded as unfaithful. Structural shortfall, not model — generic faithfulness lacks the trace-aware boundary scaffolding (date collisions, self-corrections, quoted historical claims). Specialized-vs-untuned-generic on a specialized problem, not a clean head-to-head</li>
+        <li><b>Eval landscape:</b> LangSmith, Langfuse, Braintrust, Weave all ship custom-eval runners. None ship a built-in that composes an assistant's action claim against the same trace's tool spans. Phoenix already has the trace context and evaluator runtime — the library that ships this primitive reads the trace the way the team building the agent already thinks about it</li>
+        <li><b>Who feels this most:</b> finance ops, healthcare workflow agents, customer-success and refund agents, compliance copilots, CRM/ticketing automation. Wedge customer = team that already shipped an action-taking agent into a high-trust workflow and started asking "what fraction of our agent's claims are actually grounded?"</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -1029,19 +1047,47 @@
     <h2>One file, one registration, one test fixture.</h2>
 
     <div class="editorial">
-      <p>Phoenix's eval module is well-bounded. A new evaluator slots in next to the existing ones without touching anything else: a YAML prompt config under <code>prompts/classification_evaluator_configs/</code>, a short evaluator class under <code>metrics/</code> following the <code>ClassificationEvaluator</code> pattern <code>tool_invocation.py</code> already uses, and three reference cases (clean trace, phantom, 4/16 date collision) added to the existing parametrized test fixture against Phoenix's <code>MockLLM</code>. Sketched in the fork; wiring is the easy part once the design is settled.</p>
+      <ul>
+        <li>YAML prompt config under <code>prompts/classification_evaluator_configs/</code></li>
+        <li>Short evaluator class under <code>metrics/</code>, following the <code>tool_invocation.py</code> pattern</li>
+        <li>Three reference cases (clean, phantom, 4/16 collision) added to the parametrized test fixture against Phoenix's <code>MockLLM</code></li>
+        <li>Sketched in the fork. Wiring is the easy part once the design is settled</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────── ALTERNATIVES ───────────────── -->
+<section class="body">
+  <div class="container">
+    <div class="label">section 07 · alternatives considered</div>
+    <h2>The shapes I rejected, and why.</h2>
+
+    <div class="editorial">
+      <ul>
+        <li><strong>Just extend <code>FaithfulnessEvaluator</code> with a "trace-aware" mode flag.</strong> Tempting because it adds one parameter, no new class. Rejected because the input shape differs (action claim vs. context window), the boundary cases are different (date collisions, self-corrections, quoted history), and a flag overload buries the failure class users would search for. Sibling evaluator costs +32 lines; mode-on-Faithfulness costs every Faithfulness user one more decision</li>
+        <li><strong>Pure rule-based detector (regex / span-graph walk), no LLM.</strong> Cheaper, deterministic, no API spend. v1 was this. It topped out at 13/16 on the validation set with three structural failure modes (date collisions, self-quoting corrections, partial-match context loss) that aren't fixable by tighter regex. Ships as the cheap pre-filter in production, but isn't the eval primitive</li>
+        <li><strong>Embedding-based "claim/action mismatch" similarity.</strong> Train a classifier on (assistant span, tool-span summary) pairs. Rejected for proposal scope: needs a labeled set of 1000+, takes weeks to build, and the cold-start cost is what the LLM-judge already pays in inference. Worth revisiting if eval volume hits the cost-curve breakpoint</li>
+        <li><strong>Span-attribute schema enforcement (require an <code>action_grounded</code> attribute on every assistant span at instrumentation time).</strong> Pushes the burden onto the SDK and the customer's instrumentation. The whole point of Phoenix is "we read your existing traces." A new attribute requirement is a customer-onboarding tax</li>
+        <li><strong>eBPF / agent-side runtime enforcement.</strong> Catch the bug at the source: block the assistant turn from leaving until grounding is verified. Out of scope for an eval primitive — that's an SDK + agent-runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question</li>
+      </ul>
     </div>
   </div>
 </section>
 
 <!-- ───────────────── ROADMAP ───────────────── -->
-<section class="body">
+<section class="body dim">
   <div class="container">
-    <div class="label">section 07 · what next</div>
+    <div class="label">section 08 · what next</div>
     <h2>Where this lands on the AX surface needs two scoping conversations.</h2>
 
     <div class="editorial">
-      <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals, so committing to a runtime ship in 30 days would be a guess I'd rather not make. The 30-day commit below is a decision date, not a ship date.</p>
+      <ul>
+        <li>Tool bypass <strong>at batch</strong> is clearly a Phoenix story — the eval is already running</li>
+        <li>Tool bypass <strong>at runtime</strong> is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs)</li>
+        <li>I haven't seen the Alyx response-path internals, so a 30-day runtime ship would be a guess I'd rather not make</li>
+        <li>The 30-day commit below is a <strong>decision date, not a ship date</strong></li>
+      </ul>
     </div>
 
     <div class="roadmap">

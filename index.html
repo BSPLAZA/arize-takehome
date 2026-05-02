@@ -556,10 +556,9 @@
       </aside>
       <div class="editorial">
         <div class="first">
-          <p>Existing Phoenix evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em> and wrote an eval for it that matches Phoenix's existing module patterns.</p>
+          <p>Existing Phoenix evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em>, wrote an eval matching Phoenix's existing module patterns, and ran it against <b>169 real production turns</b>: <b>7 real phantoms</b>, <b>4 false positives</b>.</p>
         </div>
-        <p>The eval ran against <b>169 real production turns</b> from one of my agents. It caught <b>seven real phantom-action bugs</b> and surfaced <b>four false positives</b>. The false positives are useful: they argue for an LLM-as-judge follow-up rather than a regex-only approach, and they're documented row-by-row in the proposal section.</p>
-        <p>The proposal commits to an <b>Alyx runtime <em>decision</em></b> in the next thirty days (latency budget, routing surface, build vs configure), names the dependency on handoff and memory primitives that come after, and treats <em>where on the AX surface this primitive lives</em> as a question to settle with your eval team before I'd commit to a ship date.</p>
+        <p>The 30-day commit is an <b>Alyx runtime <em>decision</em></b> — latency budget, routing surface, build vs configure — not a ship date. Where on the AX surface this primitive lives is a question to settle with your eval team first.</p>
       </div>
     </div>
   </div>
