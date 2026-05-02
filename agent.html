@@ -582,7 +582,8 @@
 
     <div class="editorial">
       <p>The eval primitive in the proposal isn't just a code artifact. After Phoenix deployed and prod traffic flowed in, I ran a regex-based Tool Bypass classifier against all <strong>57</strong> production spans in the project, then pushed the results back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric in the same row as Total Cost and Latency.</p>
-      <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms. Consistent with the regex audit's post-v50 result on DM-only traffic, now extended across every surface Phoenix sees.</p>
+      <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
+      <p>The same classifier, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 instructive false positives</strong> (the audit table lives in <a href="proposal.html#section-04">/proposal section 04</a>). The eval catches the failure when the failure exists; passes cleanly when the layered defense holds. That symmetry is the value: not "always green" and not "always red," but a primitive that <em>moves with the truth</em>.</p>
     </div>
 
     <div class="ss">
@@ -615,6 +616,14 @@
       <p>In the first thirty minutes after Phoenix deployed, the workspace ingested <strong>38 production traces</strong>. Over the same window, <code>conversation_log</code> wrote <strong>zero</strong> new rows. The audit was scanning a third of the surface, confidently. Phoenix was scanning the whole thing the moment it turned on.</p>
       <p>The eval primitive in the proposal is the small fix. The audit pipeline replacement is the bigger one. The same regex, the same evaluator, now covering the surfaces the SQL pipeline structurally couldn't see.</p>
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
+
+    <div class="editorial">
+      <p>This evening, while writing this submission, I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> No response. Total silence.</p>
+      <p>I checked Phoenix immediately. No new trace in the project for that turn. Which means the agent's handler short-circuited <em>before</em> reaching Anthropic. Probably the mention-detection or trigger-phrase routing logic decided this wasn't a request that needed the LLM. <strong>The current Phoenix instrumentation can't see that decision.</strong> It only sees Anthropic API calls; it has no spans at the handler entry point or at the Telegram-send egress.</p>
+      <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure is one layer up: "received message, decided to skip LLM, never told the user why." Same shape, different layer. The natural extension of Tool Bypass into a <em>Handler Bypass</em> primitive is the day-two work this take-home is implicitly proposing. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
+    </div>
   </div>
 </section>
 
@@ -635,9 +644,25 @@
     <a href="https://github.com/BSPLAZA/phoenix/tree/feat/tool-bypass-eval" class="repo-card">
       <div>
         <div class="name">github.com/BSPLAZA/phoenix · feat/tool-bypass-eval</div>
-        <div class="blurb">My Phoenix fork with the Tool Bypass eval. Six files: YAML config, generated config, evaluator class following <code>ClassificationEvaluator</code> pattern, three small <code>__init__.py</code> updates. ~217 lines.</div>
+        <div class="blurb">My Phoenix fork with the Tool Bypass eval. YAML config, generated config, evaluator class following <code>ClassificationEvaluator</code> pattern, parametrized test inclusion, exports. ~225 lines.</div>
       </div>
       <div class="gh">↗ open fork</div>
+    </a>
+
+    <a href="https://github.com/Arize-ai/phoenix/issues/12981" class="repo-card">
+      <div>
+        <div class="name">Arize-ai/phoenix · issue #12981</div>
+        <div class="blurb">Filed as a public proposal on the maintainer surface. Describes the failure-mode taxonomy gap, the proposed primitive, and the boundary cases the prompt handles.</div>
+      </div>
+      <div class="gh">↗ open issue</div>
+    </a>
+
+    <a href="https://github.com/Arize-ai/phoenix/pull/12982" class="repo-card">
+      <div>
+        <div class="name">Arize-ai/phoenix · pull request #12982 (draft)</div>
+        <div class="blurb">Draft PR against <code>main</code> from <code>BSPLAZA:feat/tool-bypass-eval</code>. Marked draft pending maintainer input on naming and scope. Closes #12981 if accepted.</div>
+      </div>
+      <div class="gh">↗ open PR</div>
     </a>
   </div>
 </section>

@@ -375,68 +375,73 @@
     <h2>Onboarding to first trace, in one afternoon.</h2>
 
     <div class="editorial">
-      <p>Signed in at <code>app.phoenix.arize.com</code> via GitHub OAuth. Account provisioned in roughly forty seconds. Workspace at <code>app.phoenix.arize.com/s/bsplaza</code>. Generated an API key from the General → API Keys panel. The create-key dialog showed the raw key value once, which is the right behavior for a credential that should never be retrieved later. I copied it, set <code>PHOENIX_API_KEY</code> and <code>PHOENIX_COLLECTOR_ENDPOINT</code> in Luke's <code>.env</code>, and moved on.</p>
-      <p>The Anthropic instrumentation followed the documented quickstart almost verbatim. <code>arize-phoenix-otel</code> + <code>openinference-instrumentation-anthropic</code>. Two pip installs, four lines of <code>register()</code> + <code>AnthropicInstrumentor().instrument()</code> in Luke's startup path. Tool-call dispatches needed a few extra lines of custom span emission to land cleanly as <code>SpanKind.TOOL</code> children with <code>tool.name</code> attributes.</p>
+      <p>Signed in at <code>app.phoenix.arize.com</code> via GitHub OAuth, generated an API key from General → API Keys, set <code>PHOENIX_API_KEY</code> + <code>PHOENIX_COLLECTOR_ENDPOINT</code> in Luke's <code>.env</code>. Quickstart followed almost verbatim: two pip installs, four lines of <code>register()</code> + <code>AnthropicInstrumentor().instrument()</code> in Luke's startup path, deploy. The bot's <code>messages.create</code> calls started landing as LLM spans inside thirty seconds. After the deploy I pulled the prod span set with <code>client.spans.get_spans_dataframe()</code>, ran a regex Tool Bypass classifier in Python, and pushed the verdicts back as annotations with <code>client.spans.log_span_annotations_dataframe()</code>. Phoenix lifted the result into a project-header metric next to Total Cost and Latency. <em>That feedback loop, when it works, is the strongest thing about the platform.</em></p>
+      <p>What follows is the friction I hit between sign-in and seeing my eval go green.</p>
     </div>
 
-    <div class="placeholder-note">
-      Detailed friction-by-friction notes from my live install will land here once Luke session's <code>phoenix-instrumentation-notes.md</code> is appended. Below: the friction surface I'd already noticed during a docs-and-onboarding pass earlier in the take-home.
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I noticed</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I hit, in order</h3>
 
     <div class="frictions">
       <div class="friction">
         <div class="num">01</div>
         <div class="body">
-          <span class="what">The empty-state code snippet is generic, even after I picked a framework.</span>
-          The first-trace landing page shows fourteen framework buttons (LangGraph, OpenAI, Anthropic, etc). Clicking one looks like it should personalize the quickstart. It doesn't, or if it does, the change is invisible. I picked Anthropic and got the same plain <code>@tracer.chain</code> example.
-          <span class="so-what">When the user picks a framework button, swap the code snippet to the matching instrumentor (<code>openinference-instrumentation-anthropic</code> for Anthropic, etc.) and add the import line. The win is making the second click write actual working code, not pseudocode.</span>
+          <span class="what"><code>Client(base_url=...)</code> needs the workspace path or every call returns 401.</span>
+          The Cloud quickstart shows <code>https://app.phoenix.arize.com</code> as the endpoint. Passing that to <code>Client</code> got me a 401 on the first <code>get_spans_dataframe</code>. Switching to <code>https://app.phoenix.arize.com/s/bsplaza</code> fixed it. Three attempts to land on the right shape.
+          <span class="so-what">Either accept the bare domain and infer the workspace from the API key (the JWT carries it), or surface a clear error: <em>"this key is bound to workspace 'bsplaza'; set base_url to https://app.phoenix.arize.com/s/bsplaza."</em> Right now the failure is a generic <code>HTTPStatusError: 401</code>.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">02</div>
         <div class="body">
-          <span class="what">The filter bar wants me to know the query syntax already.</span>
-          The trace list filter input is positioned for power users: it accepts <code>span_kind == 'LLM'</code> as raw filter syntax, no query builder, no column-header click-to-filter, no autocomplete chip flow.
-          <span class="so-what">Add column-header dropdowns for the common filters (kind, status, latency bucket). Keep the raw-query input for power users. The first session shouldn't require reading a filter-language doc.</span>
+          <span class="what">API key plumbing has five working paths and no canonical one.</span>
+          <code>Client(api_key=...)</code> works. <code>os.environ['PHOENIX_API_KEY']</code> works. <code>headers={'api_key': key}</code> works. <code>headers={'Authorization': f'Bearer {key}'}</code> works. <code>PHOENIX_CLIENT_HEADERS=api_key=&lt;key&gt;</code> for the OTLP exporter works. All valid, none documented as the recommended one. Two minutes spent finding which to use.
+          <span class="so-what">Pick a recommended path and put it at the top of the SDK quickstart. The other four can be alternates further down.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">03</div>
         <div class="body">
-          <span class="what">The gap between tracing and evaluating is invisible until you hit it.</span>
-          When I opened a trace detail panel, the annotations side-panel said <em>"No annotation configurations for this project."</em> No setup CTA. No "want to add an eval here?" prompt. Just a dead end where the next step in the value loop should be.
-          <span class="so-what">Wire the empty annotations panel to a one-click flow: pick a built-in eval (Hallucination, Function Call, Tool Bypass) and run it on the visible trace. The trace-to-eval handoff is where Phoenix earns the second visit; right now that handoff is the user's job to discover.</span>
+          <span class="what">DataFrame columns aren't list-flattened the way you'd expect.</span>
+          <code>get_spans_dataframe()</code> returns a column named <code>attributes.llm.output_messages</code> whose values are <em>Python lists of dicts</em>, not flattened to <code>attributes.llm.output_messages.0.message.content</code> the way attribute paths usually are. My first classifier returned empty strings for every row because the dotted path didn't exist. Cost: ~3 minutes to introspect the actual columns and rewrite the extractor.
+          <span class="so-what">Either flatten consistently, or surface the schema in the docstring of <code>get_spans_dataframe</code>. The current behavior is correct but invisible until you hit it.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">04</div>
         <div class="body">
-          <span class="what">Span names are truncated in the side panel hierarchy.</span>
-          Trace span names like <code>code_bas...</code> and <code>ChatCom...</code> in the detail panel hierarchy. Hard to orient when you're new and don't know the conventions.
-          <span class="so-what">Either widen the panel, soft-wrap, or show the full name on hover with no delay. A trace tree where most names are truncated reads as "this is a debug tool for someone else."</span>
+          <span class="what">The simplest evaluator primitive is buried.</span>
+          I built a custom regex classifier from scratch. After it was working, I ran <code>dir(phoenix.evals.metrics)</code> out of curiosity and discovered <code>MatchesRegex</code>. It would have replaced thirty lines of my custom code. The docs lead with the LLM-judge evaluators (Hallucination, Faithfulness, Refusal); the lighter-weight building blocks aren't on the same surface.
+          <span class="so-what">Add a "before you write your own evaluator" page. List the primitives (<code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>) with one-line use cases. Save the next person thirty lines.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">05</div>
         <div class="body">
-          <span class="what">The <code>/evaluations</code> route in the demo instance threw a GraphQL error.</span>
-          When I clicked Evaluations from the demo instance, I got <em>"Something went wrong"</em>. The bug is in the demo, not the product, but it's the surface a curious evaluator sees on their first click.
-          <span class="so-what">Treat the demo instance as part of the product. Add a smoke test that hits each top-level route and pages a human if any throws an error. The cost of one prospect closing the tab on a 500 is much higher than the cost of running the smoke.</span>
+          <span class="what">The trace-to-eval handoff is invisible from the UI.</span>
+          The trace detail panel's annotations sidebar reads <em>"No annotation configurations for this project."</em> No setup CTA. No "run a built-in eval on this trace" prompt. The way I actually got annotations into the UI was via the Python SDK in a separate script. From inside the UI, you can't.
+          <span class="so-what">Wire the empty annotations panel to a one-click flow: pick a built-in eval (Hallucination, Function Call, Tool Bypass), pick a model, run on the current trace. The first eval should be a UI button, not a Python script. The SDK path stays for batch and CI.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">06</div>
         <div class="body">
+          <span class="what">The filter bar expects you to already know the query syntax.</span>
+          The trace list filter input takes <code>span_kind == 'LLM'</code> as raw filter syntax. No query builder, no column-header click-to-filter, no autocomplete chip flow. New users either guess or read a doc.
+          <span class="so-what">Column-header dropdowns for the common filters (kind, status, latency bucket). Keep the raw-query input for power users. The first session shouldn't require a doc.</span>
+        </div>
+      </div>
+
+      <div class="friction">
+        <div class="num">07</div>
+        <div class="body">
           <span class="what">URLs use base64 IDs instead of human-readable slugs.</span>
-          Trace URLs and project URLs use base64-encoded IDs (<code>UHJvamVjdDox</code>). Cosmetic, but it makes URLs unshareable and undebuggable. For a tracing product, I'd expect URLs to be the universal identifier.
-          <span class="so-what">Add a slug or numeric short-id alongside the base64. Default to the slug in the URL bar. Keep the base64 as the canonical id for the API.</span>
+          Project and trace URLs are base64-encoded GraphQL global IDs (<code>UHJvamVjdDox</code>). Cosmetic, but it makes URLs unshareable in chat or in screenshots, and the security layer in some browser-automation tools refuses to navigate them as a defense.
+          <span class="so-what">Add a slug or short-id alongside the base64. Default to the slug in the URL bar. Keep the base64 as the canonical id for the API.</span>
         </div>
       </div>
     </div>
