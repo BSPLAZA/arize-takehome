@@ -715,7 +715,7 @@
   <div class="container">
     <div class="eyebrow">the proposal</div>
     <h1>Tool Bypass.</h1>
-    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I defined it, wrote the LLM-as-judge version in your repo's style, ran the regex variant against 169 historical DM turns from one of my agents (7 real phantoms, 4 false positives worth keeping), and re-ran it live against 57 post-defense spans flowing into Phoenix Cloud right now (zero phantoms, μ 1.00). The eval flags the bug where it exists. It stays quiet when defenses hold.</p>
+    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I defined it, wrote the LLM-as-judge version in your repo's style, ran the regex variant against 169 historical DM turns from one of my agents (7 real phantoms, 4 false positives worth keeping), and re-ran it on 57 post-defense spans in Phoenix Cloud (zero phantoms, μ 1.00). It catches the bug where it exists and goes quiet once the agent's defenses ship.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
@@ -985,14 +985,18 @@
       <p style="margin-top: 16px;">So I tested it. Ran the LLM-judge <code>ClassificationEvaluator</code> against the eleven flagged turns plus five known-grounded references. Two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Compared each LLM verdict against the regex and against ground truth, and ran Phoenix's <code>ToolSelectionEvaluator</code> as a baseline. Real LLM calls, real verdicts:</p>
     </div>
 
+    <div class="editorial" style="margin-bottom: 8px;">
+      <p style="font-size: 16px; color: var(--muted); margin: 0;"><b style="color: var(--ink-2); font-weight: 500;">Important caveat before reading the numbers below:</b> n=16 is a unit test, not a benchmark. The judge prompt was iterated on this same set, and I am the sole grader. Confidence intervals overlap heavily. Read these as directional signal about <em>which evaluator family</em> matches the problem shape, not as a leaderboard.</p>
+    </div>
+
     <div class="audit-frame" style="margin-top: 8px;">
       <div class="topcaption">
-        <div class="stat tp"><b>14/16</b> LLM-judge Sonnet 4.6 (88%)</div>
-        <div class="stat tp"><b>14/16</b> LLM-judge Opus 4.7 (88%, errors flipped to false-negatives)</div>
-        <div class="stat"><b>13/16</b> regex (81%)</div>
-        <div class="stat"><b>12/16</b> Phoenix ToolSelection (75%)</div>
-        <div class="stat fp"><b>11/16</b> LLM-judge Haiku 4.5 (69%)</div>
-        <div class="stat fp"><b>9/16</b> Phoenix Faithfulness built-in (56%)</div>
+        <div class="stat tp"><b>14/16</b> LLM-judge Sonnet 4.6</div>
+        <div class="stat tp"><b>14/16</b> LLM-judge Opus 4.7 (errors flip to FN)</div>
+        <div class="stat"><b>13/16</b> regex</div>
+        <div class="stat"><b>12/16</b> Phoenix ToolSelection</div>
+        <div class="stat fp"><b>11/16</b> LLM-judge Haiku 4.5</div>
+        <div class="stat fp"><b>9/16</b> Phoenix Faithfulness (untuned)</div>
       </div>
       <table class="audit-table">
         <thead>
@@ -1061,10 +1065,10 @@
 <section class="body">
   <div class="container">
     <div class="label">section 07 · what next</div>
-    <h2>I don't know yet whether this belongs in Alyx or AX. Here's how I'd find out.</h2>
+    <h2>Where this lands on the AX surface needs two scoping conversations.</h2>
 
     <div class="editorial">
-      <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals, so committing to a runtime ship in 30 days would be a guess. Name the decision, name the inputs, name the date. Don't fake the commitment.</p>
+      <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals, so committing to a runtime ship in 30 days would be a guess I'd rather not make. The 30-day commit below is a decision date, not a ship date.</p>
     </div>
 
     <div class="roadmap">

@@ -442,7 +442,7 @@
 
     <div class="editorial">
       <p>Luke runs the 75 Hard challenge for a closed Telegram group of five friends plus the bot itself. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM in my voice. One shared group chat where the agent posts daily cards and milestones.</p>
-      <p>The agent handles backfills, undo, food vision, transformation timelapses, daily nudges. It also lies. Five users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
+      <p>The agent handles backfills, undo, food vision, transformation timelapses, and daily nudges. It also occasionally claims to have done things it didn't. Five users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
     </div>
 
     <div class="stats">
@@ -545,8 +545,8 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
 
     <div class="editorial">
-      <p>I ran a regex Tool Bypass classifier against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric next to Total Cost and Latency. <strong>Result: <code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
-      <p>The same regex, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 false positives</strong> worth keeping (full table in <a href="proposal.html#section-04">/proposal section 04</a>). The eval flags the bug where the bug exists, and stays quiet when the v50 defense holds.</p>
+      <p>I ran a regex Tool Bypass classifier against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. The annotations show in the per-span Annotations column and aggregate as a custom mean alongside Total Cost and Latency in the project header. <strong>Result: <code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
+      <p>The same regex, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 false positives</strong> worth keeping (full table in <a href="proposal.html#section-04">/proposal section 04</a>). After the v50 defense shipped, the eval went quiet, which is what you want it to do.</p>
       <p>I also ran the LLM-judge <code>ClassificationEvaluator</code> from the Phoenix fork against the eleven flagged turns plus five known-grounded references, with two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Sonnet 14/16 (88%) beat the regex. Haiku 11/16 (69%) lost to it. Phoenix's <code>ToolSelectionEvaluator</code> as a baseline: 12/16 (75%). Sonnet handled the boundary case regex can't (the "4/16" calendar-date collision); Haiku handled that one too but false-negatived on "goal hit" turns where the tool fired but Haiku couldn't bridge from the tool name to the resulting state. Model capability matters at the eval layer.</p>
     </div>
 
@@ -565,7 +565,7 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 04 · the headline finding</div>
-    <h2>Same prompt, three models, errors flip. <em>The 14/16 ceiling is a model question, not a prompt question.</em></h2>
+    <h2>Same prompt, three models, the same 14/16 ceiling. The errors flip; the prompt isn't the bottleneck.</h2>
 
     <div class="editorial">
       <p>v1 of the judge against the dataset: <strong>14/16 (88%)</strong>, two missed boundary cases. I pushed v2 of the prompt to Phoenix's <strong>Prompt registry</strong> with explicit guidance for those exact cases (jailbreak attempts: judge the assistant's content, not the user's request; self-correcting follow-ups: recovery, not a fresh phantom). Re-ran the experiment, pulling v2 from the registry via <code>GET /v1/prompts/tool-bypass-judge/latest</code>.</p>
@@ -646,7 +646,7 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
 
     <div class="editorial">
-      <p>I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> No response. Total silence.</p>
+      <p>I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> Luke didn't respond at all.</p>
       <p>I checked Phoenix. No new trace for that turn. The handler had short-circuited before reaching Anthropic — probably the mention-detection or trigger-phrase routing decided the message didn't need the LLM. The current instrumentation can't see that decision. It sees Anthropic API calls; it has no spans at the handler entry point or at the Telegram egress.</p>
       <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure sits one layer up: "received message, decided to skip LLM, never told the user why." A <em>Handler Bypass</em> primitive is the natural extension. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
     </div>
