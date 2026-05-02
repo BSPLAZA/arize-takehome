@@ -17,10 +17,10 @@
     --muted:    #6f6960;
     --line:     #d8cfba;
     --line-2:   #c5b99d;
-    --accent:   #c14613;       /* burnt sienna — failure / emphasis */
+    --accent:   #c14613;       /* burnt sienna - failure / emphasis */
     --accent-2: #8b3210;
     --accent-soft: #f8e5d6;
-    --good:     #4a5d3a;       /* muted olive — covered */
+    --good:     #4a5d3a;       /* muted olive - covered */
     --good-soft:#dde2cf;
     --span:     #b8a888;       /* trace span fill */
     --span-fail:#c14613;
@@ -94,7 +94,7 @@
   .register .nav a:hover { color: var(--ink); }
   .register .nav a.cur { color: var(--ink); }
 
-  /* Hero — the trace IS the design */
+  /* Hero - the trace IS the design */
   .hero {
     padding: 88px 0 96px;
     border-bottom: 1px solid var(--line);
@@ -343,7 +343,7 @@
     transform: translateX(6px);
   }
 
-  /* TL;DR — editorial */
+  /* TL;DR - editorial */
   .tldr {
     padding: 96px 0;
     border-bottom: 1px solid var(--line);
@@ -524,8 +524,8 @@
       <a href="agent.html" class="branch">
         <div class="span-id"><span class="num">01</span><br>span.agent</div>
         <div class="body">
-          <h3>The agent, in production</h3>
-          <p>Luke. 27 tools, 169 production turns last month, six daily-active users. What it does, how I instrumented it, and the trace that started this.</p>
+          <h3>The agent</h3>
+          <p>Luke. 27 tools, 169 turns last month from six daily-active users (a personal-use agent at production scale, not an enterprise load). What it does, how I instrumented it, and the trace that started this.</p>
         </div>
         <div class="arrow">→</div>
       </a>
@@ -571,7 +571,7 @@
           <p>Existing Phoenix evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em> and wrote an eval for it that matches Phoenix's existing module patterns, written as if I were already on the team.</p>
         </div>
         <p>The eval ran against <b>169 real production turns</b> from one of my agents. It caught <b>seven real phantom-action bugs</b> and surfaced <b>four false positives</b>. The false positives are useful: they argue for an LLM-as-judge follow-up rather than a regex-only approach, and they're documented row-by-row in the proposal section.</p>
-        <p>The proposal commits to an <b>Alyx runtime ship</b> in the next thirty days (with the OSS contribution as a credibility down-payment), names the dependency on handoff and memory primitives that come after, and asks the question I'd want to talk through before committing: where on the AX surface this primitive should actually live.</p>
+        <p>The proposal commits to an <b>Alyx runtime <em>decision</em></b> in the next thirty days (latency budget, routing surface, build vs configure), names the dependency on handoff and memory primitives that come after, and is honest that the answer to <em>where on the AX surface this primitive should actually live</em> needs a conversation with your team before I'd commit to a ship date.</p>
       </div>
     </div>
   </div>
