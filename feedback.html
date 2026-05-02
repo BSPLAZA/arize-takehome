@@ -341,7 +341,7 @@
   <div class="container">
     <div class="eyebrow">workflow feedback</div>
     <h1>Field notes from instrumenting.</h1>
-    <p class="sub">An honest read of the Phoenix Cloud onboarding on Luke, plus an outside-in pass on AX (Alyx, Copilot, the product surface) from documentation and the product tour. Specific moments. What I'd change.</p>
+    <p class="sub">An honest read of the Phoenix Cloud onboarding, plus an outside-in pass on AX from the public surface. Specific moments. What I'd change.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
@@ -358,7 +358,7 @@
 
     <div class="editorial">
       <p>Phoenix is the half I used. I instrumented Luke and got traces flowing into a Phoenix Cloud workspace. The friction below comes from that session.</p>
-      <p>AX is the half I observed. I worked the public product pages, the Alyx and Copilot documentation, the demo videos, the customer case studies. I did not run a paid trial. I'm flagging which observations are first-hand and which are second-hand reads, because "the docs implied X" is a different signal than "I clicked X and it broke."</p>
+      <p>AX is the half I observed from the public surface: product pages, Alyx documentation, demo videos, case studies. Flagging which observations are first-hand and which are second-hand reads, since "the docs implied X" is a different signal than "I clicked X and it broke."</p>
     </div>
 
     <div class="meta-note">
@@ -374,7 +374,6 @@
     <h2>Onboarding to first trace, in one afternoon.</h2>
 
     <div class="editorial">
-      <p>Signed in at <code>app.phoenix.arize.com</code> via GitHub OAuth, generated an API key from General → API Keys, set <code>PHOENIX_API_KEY</code> and <code>PHOENIX_COLLECTOR_ENDPOINT</code> in Luke's <code>.env</code>. Quickstart followed almost verbatim: two pip installs, four lines of <code>register()</code> and <code>AnthropicInstrumentor().instrument()</code> in Luke's startup, deploy. The bot's <code>messages.create</code> calls started landing as LLM spans inside thirty seconds. I then pulled the live span set with <code>client.spans.get_spans_dataframe()</code>, ran a regex Tool Bypass classifier in Python, and pushed the verdicts back as annotations with <code>client.spans.log_span_annotations_dataframe()</code>. Phoenix lifted the result into a project-header metric next to Total Cost and Latency. That feedback loop, when it works, is the strongest thing about the platform.</p>
       <p>The friction I hit between sign-in and seeing my eval go green:</p>
     </div>
 
@@ -454,12 +453,6 @@
       </div>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What worked well</h3>
-
-    <div class="editorial">
-      <p>The "Waiting for traces to arrive" empty state is the strongest part of onboarding. It puts the integration picker and code snippet on screen immediately. Most products fail this moment with a marketing splash or a docs link; Phoenix shows the next action.</p>
-      <p>The Stream toggle (live trace feed) is well-positioned for the developer's first "did it work?" moment. The span-kind chips (color-coded agent, chain, tool) make the table fast to scan. Python and TypeScript get equal billing from day one.</p>
-    </div>
   </div>
 </section>
 
@@ -470,11 +463,7 @@
     <h2>An outside-in read on the surfaces I'd actually work on.</h2>
 
     <div class="editorial">
-      <p>This half is from documentation, product pages, and the Alyx demo video. I did not run a paid trial. I'm not pretending the friction below is from inside the product. It's the read a PM does before a first product review.</p>
-    </div>
-
-    <div class="meta-note">
-      <b>What I'd want before joining:</b> a seat in AX. The proposal leads with Alyx for a reason. If I joined the team, the first thirty days would be spent inside that surface, not outside it. The notes below are what I'd bring to the first meeting, not the second.
+      <p>This half is from the public surface: documentation, product pages, the Alyx demo video. Less specific than the Phoenix half, framed as a PM's read before a first product review.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I observed</h3>
@@ -492,23 +481,14 @@
       <div class="friction">
         <div class="num">02</div>
         <div class="body">
-          <span class="what">Copilot's role versus Alyx's role isn't obvious from the marketing surface.</span>
-          The product pages mention both. The line between them (Copilot as a debug companion in the product, Alyx as an agent on the customer's app) is implied but not stated.
-          <span class="so-what">A positioning question I'd want to debate internally. The shortest version of the answer ("Copilot helps you understand traces; Alyx helps your app evaluate itself") would shorten the customer onboarding conversation.</span>
+          <span class="what">The Bedrock AgentCore partnership reads as another integration when it could read as a wedge.</span>
+          AX shipped a partnership with AWS Bedrock AgentCore. From the customer-decision surface, that's a meaningful signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX. The current page treats it as a logo on a list.
+          <span class="so-what">If the AWS-anchored enterprise segment is a real cohort, the partnership deserves a section, not a logo.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">03</div>
-        <div class="body">
-          <span class="what">The Bedrock AgentCore partnership is significant and barely visible.</span>
-          AX shipped a partnership with AWS Bedrock AgentCore. From the product surface, it reads as a supported integration. From the customer-decision surface, it's a major signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX.
-          <span class="so-what">If this is the wedge for the AWS-anchored enterprise segment, treat it like the wedge. Current copy reads as "another integration." Promote it.</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">04</div>
         <div class="body">
           <span class="what">The customer case studies are technical, not commercial.</span>
           The case-study pages describe implementation: which models, which evals, which features. They don't describe commercial outcomes: adoption inside the customer's company, time-to-value, second-quarter renewal signals.
@@ -540,7 +520,7 @@
         <tr>
           <td>Trace-to-eval handoff</td>
           <td>Visible gap; "No annotation configurations" dead end</td>
-          <td>Implied to be tighter via Copilot + dataset-driven evals; would want to verify</td>
+          <td>Implied to be tighter via dataset-driven evals; would want to verify</td>
         </tr>
         <tr>
           <td>Adoption fuel</td>

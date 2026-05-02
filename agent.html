@@ -425,7 +425,7 @@
   <div class="container">
     <div class="eyebrow">the agent</div>
     <h1>Luke.</h1>
-    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 107 tests passing, instrumented with Phoenix.</p>
+    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, instrumented with Phoenix.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div><a href="https://github.com/BSPLAZA/75-hard">github.com/BSPLAZA/75-hard</a></div>
@@ -459,10 +459,6 @@
         <div class="lab">production turns over 30 days</div>
       </div>
       <div>
-        <div class="num">107</div>
-        <div class="lab">tests passing</div>
-      </div>
-      <div>
         <div class="num warn">7</div>
         <div class="lab">phantom bugs caught by audit</div>
       </div>
@@ -470,12 +466,9 @@
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A typical exchange</h3>
 
-    <div class="ss" style="margin-top: 16px;">
-      <div class="caption">
-        <span>The compliance grid for days 1–17 of the 75-day challenge, and a food-log exchange below it. The "117/170, 53 to go" and "122/170, 48 to go" responses are the same shape as the phantoms in the audit. This time the tool fired and the numbers match real state.</span>
-      </div>
-      <img src="screenshots/00-telegram-luke-live.png" alt="Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
-    </div>
+    <figure style="margin: 16px 0; max-width: 560px;">
+      <img src="screenshots/00-telegram-luke-live.png" style="display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;">
+    </figure>
   </div>
 </section>
 
@@ -542,20 +535,11 @@
       <p>I wired in <code>arize-phoenix-otel</code> and <code>openinference-instrumentation-anthropic</code> and shipped to Fly. Every Anthropic <code>messages.create</code> call emits an LLM span with the tool catalog, <code>tool_use</code> blocks, and <code>stop_reason</code> as attributes. The shape the audit script read out of SQL now flows as OTLP into Phoenix Cloud, ready for the Tool Bypass eval to consume.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Running the eval against the traces.</h3>
 
     <div class="editorial">
-      <p>I ran a regex Tool Bypass classifier against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. The annotations show in the per-span Annotations column and aggregate as a custom mean alongside Total Cost and Latency in the project header. <strong>Result: <code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
-      <p>The same regex, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 false positives</strong> worth keeping (full table in <a href="proposal.html#section-04">/proposal section 04</a>). After the v50 defense shipped, the eval went quiet, which is what you want it to do.</p>
-      <p>I also ran the LLM-judge <code>ClassificationEvaluator</code> from the Phoenix fork against the eleven flagged turns plus five known-grounded references, with two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Sonnet 14/16 (88%) beat the regex. Haiku 11/16 (69%) lost to it. Phoenix's <code>ToolSelectionEvaluator</code> as a baseline: 12/16 (75%). Sonnet handled the boundary case regex can't (the "4/16" calendar-date collision); Haiku handled that one too but false-negatived on "goal hit" turns where the tool fired but Haiku couldn't bridge from the tool name to the resulting state. Model capability matters at the eval layer.</p>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the validation set durable as a Phoenix Dataset, and the run reproducible as a Phoenix Experiment.</h3>
-
-    <div class="editorial">
-      <p>Comparing evaluators in a notebook is a one-shot artifact. The next person who wants to swap a prompt, a model, or a temperature has to rebuild the rig. Phoenix has primitives for exactly this gap: Datasets (a fixed set of examples with ground truth) and Experiments (a saved run of a task plus evaluators, comparable in the UI).</p>
-      <p>I uploaded the 16-turn validation set as Phoenix Dataset <code>tool_bypass_validation_v1</code> via <code>client.datasets.create_dataset</code>. The 11 regex-flagged turns plus 5 known-grounded references, each row carrying input, assistant output, observed tool spans, available tool surface, the hand-graded ground-truth label, and false-positive class metadata.</p>
-      <p>I ran the LLM-judge as a Phoenix Experiment via <code>client.experiments.run_experiment</code>. <strong>Result: 14/16 (87.5%)</strong>, the same two mismatches the notebook produced. The next eval iteration points at the same Dataset, runs as a new Experiment, and lands next to <code>tool_bypass_sonnet_4_6</code> in compare view. Regression testing for evals, treated as a workflow instead of a notebook.</p>
+      <p>I ran a regex Tool Bypass classifier in Python against all <strong>57</strong> live spans in the project and pushed the verdicts back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. <strong>Result: <code>tool_bypass μ 1.00</code></strong> across all 57 turns. The same regex, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged 11 suspect turns: <strong>7 real phantoms, 4 false positives</strong> (full table in <a href="proposal.html#section-04">/proposal section 04</a>). After v50 shipped, the audit went quiet.</p>
+      <p>I then used Phoenix's <code>ClassificationEvaluator</code> class as the runtime for an LLM-judge variant against 11 flagged turns plus 5 known-grounded references, comparing <strong>Sonnet 4.6</strong>, <strong>Haiku 4.5</strong>, and Phoenix's built-in <code>ToolSelectionEvaluator</code>. Sonnet beat the regex, Haiku lost to it. The model-capability finding is in section 04. The runs landed as Phoenix Experiments against a Phoenix Dataset (<code>tool_bypass_validation_v1</code>) so the next iteration compares against the same set in one click.</p>
     </div>
 
   </div>
@@ -617,7 +601,8 @@
     <div class="editorial">
       <p>Over thirty days of live traffic across five users, the audit script flagged eleven suspect turns. Hand-graded: seven were real phantom-action bugs. Four were false positives that clustered into three named failure modes: date-numeric collisions, self-quoting corrections, and classifier context loss.</p>
       <p>Those seven phantoms predated Luke's v50 layered defense. After v50 (Apr 24 onward), the audit found zero new phantoms in six days of live traffic.</p>
-      <p>The full audit table lives in the proposal. The script is in Luke's repo at <code>scripts/audit_conversations.py</code>. The Tool Bypass evaluator in the Phoenix fork is the same logic, productized, ready to run on traces in the Phoenix workspace now.</p>
+      <p>The full audit table lives in the proposal. The script is in Luke's repo at <code>scripts/audit_conversations.py</code>. The Phoenix fork carries a proof-of-concept evaluator with the same logic, sketched against the existing <code>ClassificationEvaluator</code> pattern.</p>
+
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the audit didn't see, and only Phoenix surfaced</h3>
@@ -632,16 +617,12 @@
 
     <div class="editorial">
       <p>For each of the seven phantoms, I pulled the next three messages the user sent and looked for the moment they noticed something was wrong. <b>Six of seven went undetected at the moment they happened.</b> Users acted on the phantom state: I logged more food after a "goal hit" celebration; Cam logged a workout after a phantom water confirm. The cost isn't the failure turn. It's the downstream actions taken on confirmed-but-fake state. The full per-phantom cascade table lives in <a href="proposal.html#section-04">/proposal section 04</a>.</p>
-      <p>When recovery came, it came as a verification question: <em>"What have I eaten"</em> (me, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable signal, an eval primitive in their own right: frequency of unprompted state-verification queries as a proxy for trust loss. The eval catches the bug; the metric confirms users are acting on stale state.</p>
-      <p>Reconstructed from a real production turn (timestamps and grid are unmodified):</p>
+      <p>When recovery came, it came as a verification question: <em>"What have I eaten"</em> (me, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable signal: frequency of unprompted state-verification queries as a proxy for trust loss. The eval catches the bug; the metric confirms users are acting on stale state.</p>
     </div>
 
-    <div class="ss" style="margin-top: 16px;">
-      <div class="caption">
-        <span>Luke confirms two food entries with running calorie totals at 06:29 PM, then admits the diet log has zero entries when I ask about it the next morning. The compliance grid above is from the same exchange. This is the trust-loss verification signal the Tool Bypass evaluator is built to catch <em>before</em> a user has to send it.</span>
-      </div>
-      <img src="screenshots/00b-telegram-phantom-verification.png" alt="Telegram chat showing Luke confirming food entries then admitting the log is empty the next day" style="display: block; width: 100%; max-width: 580px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
-    </div>
+    <figure style="margin: 24px 0; max-width: 580px;">
+      <img src="screenshots/00b-telegram-phantom-verification.png" style="display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;">
+    </figure>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
 
@@ -670,25 +651,9 @@
     <a href="https://github.com/BSPLAZA/phoenix/tree/feat/tool-bypass-eval" class="repo-card">
       <div>
         <div class="name">github.com/BSPLAZA/phoenix · feat/tool-bypass-eval</div>
-        <div class="blurb">My Phoenix fork with the Tool Bypass eval. YAML config, generated config, evaluator class following <code>ClassificationEvaluator</code> pattern, parametrized test inclusion, exports. ~225 lines.</div>
+        <div class="blurb">Phoenix fork with a proof-of-concept Tool Bypass evaluator: YAML prompt config and an evaluator class that follows the existing <code>ClassificationEvaluator</code> pattern. Exploration only, not a PR.</div>
       </div>
       <div class="gh">↗ open fork</div>
-    </a>
-
-    <a href="https://github.com/Arize-ai/phoenix/issues/12981" class="repo-card">
-      <div>
-        <div class="name">Arize-ai/phoenix · issue #12981</div>
-        <div class="blurb">Filed as a public proposal on the maintainer surface. Describes the failure-mode taxonomy gap, the proposed primitive, and the boundary cases the prompt handles.</div>
-      </div>
-      <div class="gh">↗ open issue</div>
-    </a>
-
-    <a href="https://github.com/Arize-ai/phoenix/pull/12982" class="repo-card">
-      <div>
-        <div class="name">Arize-ai/phoenix · pull request #12982 (draft)</div>
-        <div class="blurb">Draft PR against <code>main</code> from <code>BSPLAZA:feat/tool-bypass-eval</code>. Marked draft pending maintainer input on naming and scope. Closes #12981 if accepted.</div>
-      </div>
-      <div class="gh">↗ open PR</div>
     </a>
   </div>
 </section>

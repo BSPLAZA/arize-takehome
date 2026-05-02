@@ -1013,14 +1013,11 @@
     </div>
 
     <div class="editorial" style="margin-top: 24px;">
-      <p><b>Headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to regex. Same prompt, same data, different judge. Sonnet handles the boundary case regex can't (the "4/16" date-vs-fraction collision). Haiku handles date collisions but false-negatives on "goal hit" turns where the tool fired but Haiku can't bridge from the tool name to the resulting state. Model capability matters at the eval layer. The cost difference between Sonnet and Haiku is real, and so is the accuracy gap on action-vs-recall classification.</p>
-      <p><b>Haiku's named failure mode in this prompt:</b> it sees tool <em>names</em>, not tool <em>results</em>. It can verify "a tool was called" but not "the tool's effect carried the user to the asserted state." Adding <code>tool_result</code> to the prompt's <code>tool_spans</code> input closes the gap for the smaller model. Day-two refinement, named instead of papered over. Sonnet handled this without the extra context.</p>
-      <p><b><code>ToolSelectionEvaluator</code> hit 12/16.</b> It catches obvious phantoms (action claimed, no tool fired) but misses two structural patterns Tool Bypass needs: state-claims on ambiguous user input (a "Yep" reply that the agent treats as confirmation while quoting fresh state numbers) and self-corrections that quote a prior phantom inside the apology. The 2x2 cell from section 02 isn't covered; ToolSelection covers part of it.</p>
-      <p>So the deployment design isn't "LLM-judge replaces regex." It's regex as the cheap pre-filter, Sonnet-class LLM-judge as the boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension, with the four false-positive classes serving as the boundary-case test bank. Each signal earns its place by what it caught the others missed.</p>
-      <p><b>The build-vs-buy check, made cheap by Phoenix Experiments.</b> Two more runs after the initial four: Opus 4.7 on the v2 prompt (<b>14/16 again</b>, but errors flip to false-negatives, which cost more than Sonnet's false-positives, so cost-of-error keeps Sonnet primary), and Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset (<b>9/16, a 36-point drop</b>). Faithfulness catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. The shortfall isn't the model, it's structural: a generic faithfulness check has none of the trace-aware boundary scaffolding (date-numeric collisions, self-corrections, quoted historical claims) the section-02 taxonomy demands. Caveat: I tuned my prompt against this dataset and didn't re-tune Faithfulness's, so the 36-point gap is "specialized vs generic on a specialized problem," not a tuned head-to-head.</p>
-      <p><b>The regex audit also missed a third of the actual surface.</b> It reads from <code>conversation_log</code>, which only logs DM turns. The agent's group chat and its scheduled jobs (morning card, AI sweep, weekly digest) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 traces; the SQL audit wrote zero new rows. The eval primitive is the small win. Coverage of the surfaces SQL can't see is the bigger one. SQL-side fix at <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>.</p>
-      <p><b>The eval landscape today.</b> LangSmith, Langfuse, Braintrust, and Weave all ship custom-eval runners. None of them ship a built-in eval that composes an assistant's action claim against the same trace's tool spans. The closest analogue is generic faithfulness scoring (Weave does this; the Phoenix built-in tested above does this). Catching tool bypass cleanly needs the trace-aware composition plus boundary-case scaffolding. Phoenix already has the trace context and the evaluator runtime. The library that ships a built-in action-grounding eval reads the trace the way the team building the agent already thinks about it: did the claim have a tool to back it up?</p>
-      <p><b>Who feels this most.</b> Tool bypass costs are highest when the agent's claim of a state change has downstream consequences that are expensive to undo: finance ops ("I filed the expense"), healthcare workflow agents ("I logged the visit note"), customer-success agents ("I refunded the order"), compliance copilots, CRM and ticketing automation. The wedge customer is a team that's already shipped an action-taking agent into a high-trust workflow and is starting to feel "we don't know what fraction of our agent's claims are actually grounded."</p>
+      <p><b>Headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to it. Phoenix's <code>ToolSelectionEvaluator</code> sits in between at 12/16 and misses the same two boundary cases Sonnet handled (ambiguous-input state claims, self-corrections that quote a prior phantom). Model capability and trace-aware framing both matter at the eval layer.</p>
+      <p><b>Deployment design:</b> regex as cheap pre-filter, Sonnet-class judge as boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension. Opus 4.7 on the v2 prompt also hit 14/16 but errors flipped to false-negatives, which cost more here than Sonnet's false-positives, so Sonnet stays primary.</p>
+      <p><b>Build-vs-buy check.</b> Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset: <strong>9/16</strong>. Catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. Shortfall is structural, not model: generic faithfulness has none of the trace-aware boundary scaffolding (date collisions, self-corrections, quoted historical claims). The honest framing is "specialized vs untuned generic on a specialized problem," not a tuned head-to-head.</p>
+      <p><b>Eval landscape.</b> LangSmith, Langfuse, Braintrust, and Weave all ship custom-eval runners; none ship a built-in that composes an assistant's action claim against the same trace's tool spans. The closest analogue is generic faithfulness scoring. Phoenix already has the trace context and the evaluator runtime. The library that ships a built-in action-grounding eval reads the trace the way the team building the agent already thinks about it.</p>
+      <p><b>Who feels this most.</b> Tool bypass costs are highest where a claimed state change has downstream consequences that are expensive to undo: finance ops, healthcare workflow agents, customer-success and refund agents, compliance copilots, CRM/ticketing automation. The wedge customer is a team that's already shipped an action-taking agent into a high-trust workflow and started asking "what fraction of our agent's claims are actually grounded?"</p>
     </div>
   </div>
 </section>
@@ -1032,31 +1029,7 @@
     <h2>One file, one registration, one test fixture.</h2>
 
     <div class="editorial">
-      <p>Phoenix's eval module is well-bounded. The new file slots in alongside the existing evaluators without touching anything else. The relevant subtree of <span style="font-family: var(--mono);">arize-ai/phoenix</span> on main, with the addition marked:</p>
-    </div>
-
-    <div class="arch">
-<div class="root">packages/phoenix-evals/src/phoenix/evals/</div>
-<div class="indent-1 existing">├── evaluators.py                       <span style="color:var(--muted)"># ClassificationEvaluator base lives here</span></div>
-<div class="indent-1 existing">├── templating.py                       <span style="color:var(--muted)"># PromptTemplate</span></div>
-<div class="indent-1 existing">├── metrics/</div>
-<div class="indent-2 existing">│   ├── __init__.py                     <span style="color:var(--muted)"># +2 lines: import, __all__</span></div>
-<div class="indent-2 existing">│   ├── tool_invocation.py              <span style="color:var(--muted)"># reference: pattern this follows</span></div>
-<div class="indent-2 existing">│   ├── hallucination.py</div>
-<div class="indent-2 existing">│   ├── q_and_a.py</div>
-<div class="indent-2 new">│   └── tool_bypass.py</div>
-<div class="indent-1 existing">└── __generated__/classification_evaluator_configs/</div>
-<div class="indent-2 new">    └── _tool_bypass_classification_evaluator_config.py  <span style="color:var(--muted)"># auto-generated</span></div>
-<br>
-<div class="root">packages/phoenix-evals/prompts/classification_evaluator_configs/</div>
-<div class="indent-1 new">└── tool_bypass.yaml                    <span style="color:var(--muted)"># source of truth, compiled by make codegen-prompts</span></div>
-<br>
-<div class="root">packages/phoenix-evals/tests/phoenix/evals/metrics/</div>
-<div class="indent-1 existing">└── test_classification_evaluators.py   <span style="color:var(--muted)"># +8 lines: ALL_EVALUATORS parametrize entry</span></div>
-    </div>
-
-    <div class="editorial">
-      <p>One YAML, one 32-line evaluator, two small additions to existing files, one auto-generated config. The test pattern uses Phoenix's <span style="font-family: var(--mono);">MockLLM</span>, no API, no network. Three reference cases land in <span style="font-family: var(--mono);">ALL_EVALUATORS</span>: a clean trace (PASS), Cam's phantom trace (FAIL), and a 4/16-date-collision FP from the audit. The fork is wired exactly this way.</p>
+      <p>Phoenix's eval module is well-bounded. A new evaluator slots in next to the existing ones without touching anything else: a YAML prompt config under <code>prompts/classification_evaluator_configs/</code>, a short evaluator class under <code>metrics/</code> following the <code>ClassificationEvaluator</code> pattern <code>tool_invocation.py</code> already uses, and three reference cases (clean trace, phantom, 4/16 date collision) added to the existing parametrized test fixture against Phoenix's <code>MockLLM</code>. Sketched in the fork; wiring is the easy part once the design is settled.</p>
     </div>
   </div>
 </section>
