@@ -425,7 +425,7 @@
   <div class="container">
     <div class="eyebrow">the agent</div>
     <h1>Luke.</h1>
-    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 98 tests passing. Instrumented with Phoenix today.</p>
+    <p class="sub">A Telegram agent running a 75-day habit challenge for a closed group of friends. Built on Anthropic, deployed to Fly, 107 tests passing. Instrumented with Phoenix today.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div><a href="https://github.com/BSPLAZA/75-hard">github.com/BSPLAZA/75-hard</a></div>
@@ -442,7 +442,7 @@
 
     <div class="editorial">
       <p>Luke runs the 75 Hard challenge for a closed Telegram group of five friends plus the bot itself. Five daily tasks per user (two workouts, water, diet, reading, photo). One agent per user, holding a long-running DM in my voice. One shared group chat where the agent posts daily cards and milestones.</p>
-      <p>The agent handles backfills, undo, food vision, transformation timelapses, daily nudges. It also lies sometimes. Five users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
+      <p>The agent handles backfills, undo, food vision, transformation timelapses, daily nudges. It also lies. Five users isn't enterprise load, but it's enough live traffic to surface failure modes that matter.</p>
     </div>
 
     <div class="stats">
@@ -459,7 +459,7 @@
         <div class="lab">production turns over 30 days</div>
       </div>
       <div>
-        <div class="num">98</div>
+        <div class="num">107</div>
         <div class="lab">tests passing</div>
       </div>
       <div>
@@ -475,7 +475,7 @@
         <span class="filename">00-telegram-luke-live.png</span>
         <span>Bryan's actual Luke DM. The grid is Luke's compliance dashboard for days 1-17 of the 75-day challenge. Below it: a typical food-log exchange. The "117/170, 53 to go" and "122/170, 48 to go" responses are the same shape as the phantoms in the audit. This time the tool fired and the numbers match real database state.</span>
       </div>
-      <img src="screenshots/00-telegram-luke-live.png" alt="Live Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--rule); border-radius: 4px;">
+      <img src="screenshots/00-telegram-luke-live.png" alt="Live Telegram conversation between Bryan and Luke showing compliance grid and food logging" style="display: block; width: 100%; max-width: 560px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
     </div>
   </div>
 </section>
@@ -551,7 +551,7 @@
         <span class="filename">01-phoenix-trace-list.png</span>
         <span>the luke-75-hard project, with traces from real production conversations</span>
       </div>
-      <img src="screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <div class="ss">
@@ -559,7 +559,7 @@
         <span class="filename">04-span-tree.png</span>
         <span>trace detail panel: span tree, status, cost, latency, and the empty-state annotation panel</span>
       </div>
-      <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
@@ -576,7 +576,7 @@
         <span class="filename">05-tool-bypass-eval-running.png</span>
         <span>Phoenix project header with <code>tool_bypass μ 1.00</code> alongside Total Cost and Latency. Per-row annotations populate the Annotations column.</span>
       </div>
-      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the validation set durable as a Phoenix Dataset, and the run reproducible as a Phoenix Experiment.</h3>
@@ -593,7 +593,7 @@
         <span class="filename">06-phoenix-experiment.png</span>
         <span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: the <code>tool_bypass_sonnet_4_6</code> run is selected, with the matching-ground-truth evaluator scored 1.00 on the visible row, AVG 3.8s judge latency, and the dataset's input/reference output columns alongside the experiment's output.</span>
       </div>
-      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
   </div>
@@ -625,7 +625,7 @@
         </table>
       </div>
 
-      <p>Opus catches the two boundary cases Sonnet missed. But Opus then misses two real phantoms that Sonnet caught. Symmetric in count, asymmetric in cost. Sonnet errs strict (false positives); Opus errs charitable (false negatives). For Tool Bypass, false negatives are the expensive error: a phantom that slips through is the bug I'm trying to catch. Sonnet wins on cost-of-error even though they tie on accuracy.</p>
+      <p>Opus catches the two boundary cases Sonnet missed, but then misses two real phantoms that Sonnet caught. The error counts tie; the cost-of-error doesn't. Sonnet errs strict (false positives); Opus errs charitable (false negatives). For Tool Bypass, false negatives are the expensive error: a phantom that slips through is the bug I'm trying to catch. Sonnet wins on cost-of-error even though they tie on accuracy.</p>
       <p>The prescription the data supports: keep Sonnet as primary, ensemble with Opus, auto-trust only calls where both agree. The disagreement set (4 of 16 rows here) routes to human review.</p>
     </div>
 
@@ -634,7 +634,7 @@
         <span class="filename">11-three-experiment-metrics.png</span>
         <span>Phoenix Experiments Metrics view across all three runs (v1-Sonnet, v2-Sonnet, v3-Opus): <code>matches_ground_truth</code> = 0.87 across the board (14/16), with Opus 4.7 running <strong>26% faster</strong> than Sonnet 4.6 at the same accuracy. The "no improvement" finding is one glance from the platform; the cost-of-error breakdown is one click into the row-level Compare view.</span>
       </div>
-      <img src="screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Why a custom evaluator and not the built-in.</h3>
@@ -650,7 +650,7 @@
         <span class="filename">14-four-evaluator-metrics.png</span>
         <span>Phoenix Metrics view across four experiments: <code>matches_ground_truth</code> = 0.87 for v1-Sonnet, v2-Sonnet, v3-Opus (all 14/16), and <strong>0.56 (down 36%) for the built-in <code>FaithfulnessEvaluator</code></strong> (9/16).</span>
       </div>
-      <img src="screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What this dataset can and can't tell us.</h3>
@@ -676,7 +676,7 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the audit didn't see, and only Phoenix surfaced</h3>
 
     <div class="editorial">
-      <p>Side by side with Phoenix, the audit revealed something it couldn't flag on its own. It reads from Luke's <code>conversation_log</code> SQLite table. I pulled the live DB this evening: 175 historical rows across two weeks, all tagged <code>source='dm'</code>. Zero from group chat. Zero from scheduled jobs.</p>
+      <p>Side by side with Phoenix, the audit revealed something it couldn't flag on its own. It reads from Luke's <code>conversation_log</code> SQLite table. I pulled the live DB this evening: 175 historical rows across two weeks (the 169 pre-v50 turns from the audit above plus six post-v50), all tagged <code>source='dm'</code>. Zero from group chat. Zero from scheduled jobs.</p>
       <p>Luke's primary social surface is the group chat where five users talk to Luke and to each other. None of that was being written to <code>conversation_log</code>. Neither was the morning card, the AI sweep, or the weekly digest, all of which call the LLM on a timer.</p>
       <p>In the first thirty minutes after Phoenix deployed, the workspace ingested <strong>38 traces</strong>. Over the same window <code>conversation_log</code> wrote <strong>zero</strong> new rows. The audit was confidently scanning a third of the surface. Phoenix scanned the whole thing the moment it turned on.</p>
       <p>The eval primitive is the small win. The audit pipeline replacement is the bigger one. Same regex, same evaluator, now covering the surfaces SQL structurally couldn't see.</p>
@@ -697,11 +697,11 @@
         <tbody>
           <tr><td>#103 (Cam · "16/16 already from earlier backfill")</td><td>Cam</td><td class="snip">+0min: "I walked yesterday" → +1min: tried to log workout. +2min: "Show me my incomplete tasks from yesterday"</td><td class="judge">no, moved on</td></tr>
           <tr><td>#117 (Kat · "water's locked at 16/16 for yesterday")</td><td>Kat</td><td class="snip">+0min: started logging book → +48min: "What is my diet?" → next day: "How many cups of water I at"</td><td class="judge">delayed (next day)</td></tr>
-          <tr><td>#153 (Bryan · "135g, 35 to go")</td><td>Bryan</td><td class="snip">+97min: "35 gram protein bar" , kept logging based on the phantom state</td><td class="judge">no, cascaded</td></tr>
+          <tr><td>#153 (Bryan · "135g, 35 to go")</td><td>Bryan</td><td class="snip">+97min: "35 gram protein bar", kept logging based on the phantom state</td><td class="judge">no, cascaded</td></tr>
           <tr><td>#154 (Bryan · "170g, goal hit. 🎯")</td><td>Bryan</td><td class="snip">+15h: continued logging the next day, trusted the goal celebration</td><td class="judge">no, cascaded</td></tr>
-          <tr><td>#156 (Bryan · "day 8 at 75g")</td><td>Bryan</td><td class="snip">+56min: "Just had 40grams from spicy pork" , continued cascade</td><td class="judge">no, cascaded</td></tr>
-          <tr><td>#157 (Bryan · "115g, 55 to go")</td><td>Bryan</td><td class="snip">+18h: <em>"What have I eaten"</em> , verification check that exposed the cumulative phantom chain</td><td class="judge"><b>yes, 18h late</b></td></tr>
-          <tr><td>#162 (Bryan · "you're at 48g today")</td><td>Bryan</td><td class="snip">+0min: "Ok good I also just had a yogurt 11 grams" ; Luke had self-corrected, Bryan continued</td><td class="judge">recovered same turn</td></tr>
+          <tr><td>#156 (Bryan · "day 8 at 75g")</td><td>Bryan</td><td class="snip">+56min: "Just had 40grams from spicy pork", continued cascade</td><td class="judge">no, cascaded</td></tr>
+          <tr><td>#157 (Bryan · "115g, 55 to go")</td><td>Bryan</td><td class="snip">+18h: <em>"What have I eaten"</em>, verification check that exposed the cumulative phantom chain</td><td class="judge"><b>yes, 18h late</b></td></tr>
+          <tr><td>#162 (Bryan · "you're at 48g today")</td><td>Bryan</td><td class="snip">+0min: "Ok good I also just had a yogurt 11 grams"; Luke had self-corrected, Bryan continued</td><td class="judge">recovered same turn</td></tr>
         </tbody>
       </table>
     </div>
@@ -717,7 +717,7 @@
         <span class="filename">00b-telegram-phantom-verification.png</span>
         <span>Luke confirms two food entries with running calorie totals at 06:29 PM, then admits the diet log has zero entries when I ask about it the next morning. The compliance grid above is from the same exchange. This is the trust-loss verification signal the Tool Bypass evaluator is built to catch <em>before</em> a user has to send it.</span>
       </div>
-      <img src="screenshots/00b-telegram-phantom-verification.png" alt="Telegram chat showing Luke confirming food entries then admitting the log is empty the next day" style="display: block; width: 100%; max-width: 580px; height: auto; border: 1px solid var(--rule); border-radius: 4px;">
+      <img src="screenshots/00b-telegram-phantom-verification.png" alt="Telegram chat showing Luke confirming food entries then admitting the log is empty the next day" style="display: block; width: 100%; max-width: 580px; height: auto; border: 1px solid var(--line); border-radius: 4px;">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>
@@ -725,7 +725,7 @@
     <div class="editorial">
       <p>This evening, while writing this submission, I sent the agent a message in the group chat: <em>"Luke, show me a picture of what you look like."</em> No response. Total silence.</p>
       <p>I checked Phoenix immediately. No new trace for that turn. The handler short-circuited before reaching Anthropic. Probably the mention-detection or trigger-phrase routing decided the message didn't need the LLM. The current Phoenix instrumentation can't see that decision. It sees Anthropic API calls; it has no spans at the handler entry point or at the Telegram-send egress.</p>
-      <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure is one layer up: "received message, decided to skip LLM, never told the user why." Same shape, different layer. The natural extension of Tool Bypass into a <em>Handler Bypass</em> primitive is the day-two work this take-home implicitly proposes. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
+      <p>Tool Bypass catches "called LLM, claimed action, didn't fire tool." This silent failure sits one layer up: "received message, decided to skip LLM, never told the user why." The natural extension of Tool Bypass into a <em>Handler Bypass</em> primitive is the day-two work this take-home implicitly proposes. The instrumentation gap is real, observable, and the agent already has the failing example.</p>
     </div>
   </div>
 </section>
@@ -786,7 +786,7 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">06-phoenix-experiment.png</span><span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: input, reference output, Experiment output side by side, with <code>matches_ground_truth</code> scored per row.</span></div>
-      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A2 · Prompt registry (v1 + v2 versioning)</h3>
@@ -795,7 +795,7 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">09-phoenix-prompt-versioning.png</span><span>The <code>tool-bypass-judge</code> prompt in the Phoenix registry. Two versions visible. Description, metadata, prompt template body.</span></div>
-      <img src="screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A3 · Annotation Configs (and a product gap I surfaced)</h3>
@@ -804,13 +804,13 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">08-trace-detail-annotation.png</span><span>Trace detail panel: <strong>Annotation Summary</strong> shows <code>tool_bypass μ 1.00</code> from the API push (working). <strong>Edit Annotations</strong> panel below reads "No annotation configurations for this project" (the gap).</span></div>
-      <img src="screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with annotation summary populated and edit annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with annotation summary populated and edit annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A4 · Sessions instrumentation (the day-2 patch for Luke)</h3>
     <div class="editorial">
       <p>The audit's "what the user did next" narrative is currently SQL detective work. Phoenix Sessions turns it into one click: spans tagged with <code>session.id</code> and <code>user.id</code> via OpenInference's <code>using_session</code> and <code>using_user</code> context managers group automatically into a multi-turn session view. I emitted three reconstructed conversation arcs (me day-7, Cam day-3, Kat day-5) into a separate <code>luke-sessions-demo</code> project; the Sessions tab populates with grouped turns, p50 latency, and aggregated annotations. The day-2 patch for Luke is two lines at the top of <code>chat_with_luke()</code>:</p>
-      <pre style="background: #fafaf9; padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; border: 1px solid var(--rule); margin: 12px 0;"><code>from openinference.instrumentation import using_session, using_user
+      <pre style="background: #fafaf9; padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; border: 1px solid var(--line); margin: 12px 0;"><code>from openinference.instrumentation import using_session, using_user
 
 async def chat_with_luke(message, db, user_id, ...):
     day_index = await db.get_user_day(user_id)
@@ -819,7 +819,7 @@ async def chat_with_luke(message, db, user_id, ...):
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">12-phoenix-sessions-list.png</span><span>The Sessions tab of <code>luke-sessions-demo</code> populated by <code>using_session</code>: three reconstructed user arcs, each with first input, last output, p50 latency, and annotations.</span></div>
-      <img src="screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A5 · Non-LLM spans + the saved-filter URL</h3>
@@ -828,7 +828,7 @@ async def chat_with_luke(message, db, user_id, ...):
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">15-non-llm-audit-trace.png</span><span>The audit pipeline as a Phoenix trace: outer chain span with three child tool spans, each carrying custom attributes. No LLM call in the trace.</span></div>
-      <img src="screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
   </div>
 </section>

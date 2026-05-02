@@ -719,7 +719,7 @@
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
-      <div>Reading time: 7 minutes</div>
+      <div>Reading time: 10–12 minutes</div>
     </div>
   </div>
 </section>
@@ -773,7 +773,7 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 02 · the map</div>
-    <h2>Two questions decide where current evals look. And where they don't.</h2>
+    <h2>Two questions decide where current evals look, and where they don't.</h2>
 
     <div class="editorial">
       <p>Every agent failure splits along two axes. Is it a <b>knowledge claim</b> or an <b>action claim</b>? Is it <b>verifiable in the conversation</b>, or does it need <b>external state</b>?</p>
@@ -959,7 +959,7 @@
 <section class="body">
   <div class="container">
     <div class="label">section 05 · what didn't work first</div>
-    <h2>The regex was fine. It is not enough.</h2>
+    <h2>The regex worked. It wasn't enough.</h2>
 
     <div class="editorial">
       <p>The first version of the eval was a regex over assistant content. Patterns like <span style="font-family: var(--mono);">\d+\/16</span> for water counts and <span style="font-family: var(--mono);">\d+g</span> for grams of protein. It caught all seven real phantoms. It also caught the four false positives, which cluster into three precise failure modes:</p>
@@ -988,7 +988,7 @@
     <div class="audit-frame" style="margin-top: 8px;">
       <div class="topcaption">
         <div class="stat tp"><b>14/16</b> LLM-judge Sonnet 4.6 (88%)</div>
-        <div class="stat tp"><b>14/16</b> LLM-judge Opus 4.7 (88%, faster, different errors)</div>
+        <div class="stat tp"><b>14/16</b> LLM-judge Opus 4.7 (88%, errors flipped to false-negatives)</div>
         <div class="stat"><b>13/16</b> regex (81%)</div>
         <div class="stat"><b>12/16</b> Phoenix ToolSelection (75%)</div>
         <div class="stat fp"><b>11/16</b> LLM-judge Haiku 4.5 (69%)</div>
@@ -1012,10 +1012,10 @@
       <p><b>Headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to regex. Same prompt, same data, different judge. Sonnet handles the boundary case regex can't (#29's "4/16" date collision). Haiku handles date collisions but false-negatives on "goal hit" turns where the tool fired but Haiku can't bridge from the tool name to the resulting state. Model capability matters at the eval layer. The cost difference between Sonnet and Haiku is real, and so is the accuracy gap on action-vs-recall classification.</p>
       <p><b>Haiku's named failure mode in this prompt:</b> it sees tool <em>names</em>, not tool <em>results</em>. It can verify "a tool was called" but not "the tool's effect carried the user to the asserted state." Adding <code>tool_result</code> to the prompt's <code>tool_spans</code> input closes the gap for the smaller model. Day-two refinement, named instead of papered over. Sonnet handled this without the extra context.</p>
       <p><b><code>ToolSelectionEvaluator</code> hit 12/16.</b> It catches obvious phantoms (action claimed, no tool fired) but misses two structural patterns Tool Bypass needs: (1) state-claims on ambiguous user input (turn #156: I said "Yep," Luke said "day 8 at 75g"). ToolSelection labelled this "correct" because no tool was needed for "Yep," missing that the agent's <em>output</em> claimed state without grounding. (2) Self-corrections (turn #194) labelled "incorrect" instead of recognizing the v50 defense. The 2x2 cell from section 02 isn't covered; ToolSelection covers part of it.</p>
-      <p>So the deployment design isn't "LLM-judge replaces regex." It's regex as the cheap pre-filter, Sonnet-class LLM-judge as the boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension, the four false-positive classes as the boundary-case test bank. Four signals, one failure-mode cell, drawn from validation rather than belief.</p>
+      <p>So the deployment design isn't "LLM-judge replaces regex." It's regex as the cheap pre-filter, Sonnet-class LLM-judge as the boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension, with the four false-positive classes serving as the boundary-case test bank. Each signal earns its place by what it caught the others missed.</p>
       <p><b>The build-vs-buy check, made cheap by Phoenix Experiments.</b> Two more runs after the initial four: Opus 4.7 on the v2 prompt (<b>14/16 again</b>, but errors flip to false-negatives, which cost more than Sonnet's false-positives, so cost-of-error keeps Sonnet primary), and Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset (<b>9/16, a 36-point drop</b>). Faithfulness catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. The shortfall isn't the model, it's structural: a generic faithfulness check has none of the trace-aware boundary scaffolding (date-numeric collisions, self-corrections, quoted historical claims) the section-02 taxonomy demands. Caveat: I tuned my prompt against this dataset and didn't re-tune Faithfulness's, so the 36-point gap is "specialized vs generic on a specialized problem," not a tuned head-to-head.</p>
       <p><b>What the regex on its own structurally couldn't see.</b> The audit reads from <code>conversation_log</code>. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, all tagged <code>source='dm'</code>. The agent's group chat and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 traces. The SQL audit wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. The eval primitive is the small win; coverage of surfaces SQL can't see is the bigger one. Main picked up the SQL-side fix the same evening at <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>.</p>
-      <p><b>What the eval landscape currently ships.</b> LangSmith ships a correctness/relevance suite and supports custom LLM-judges; nothing trace-aware in their library reads "claimed action vs observed tool span." Langfuse ships dataset-experiment compare and a custom-eval runner with the same gap. Braintrust ships strong eval-as-code with online and offline scoring, also generic. Weave (W&B) ships a hallucination/faithfulness focus shaped like the Phoenix built-in I tested above (catches phantoms, false-flags grounded). Tool Bypass isn't a category nobody has thought about; it's one the trace-aware evaluators in the market underserve, because catching it cleanly requires composing the assistant turn against the same trace's tool spans, plus the boundary-case scaffolding. Phoenix already has the trace context and the evaluator runtime to do this. Whoever ships a first-class trace-aware action-grounding eval in their stock library owns the talking point with teams shipping action-taking agents in regulated workflows.</p>
+      <p><b>What the eval landscape currently ships.</b> LangSmith ships a correctness/relevance suite and supports custom LLM-judges; nothing trace-aware in their library reads "claimed action vs observed tool span." Langfuse ships dataset-experiment compare and a custom-eval runner with the same gap. Braintrust ships strong eval-as-code with online and offline scoring, also generic. Weave (W&B) ships a hallucination/faithfulness focus shaped like the Phoenix built-in I tested above (catches phantoms, false-flags grounded). Tool Bypass isn't a category nobody has thought about; it's one the trace-aware evaluators in the market underserve, because catching it cleanly requires composing the assistant turn against the same trace's tool spans, plus the boundary-case scaffolding. Phoenix already has the trace context and the evaluator runtime to do this. The library that ships a built-in action-grounding eval reads the trace the way the team building the agent already thinks about it: did the claim have a tool to back it up?</p>
       <p><b>Who feels this most.</b> Tool bypass costs are highest where the agent's claim of a state change has downstream consequences that are expensive to undo: finance ops (an agent that says "I filed the expense" but didn't), healthcare workflow agents ("I logged the visit note"), customer-success agents ("I refunded the order"), compliance copilots, and any agent driving a CRM or ticketing system through tool calls. For Arize, the wedge customer is the team that's already shipped an action-taking agent into a high-trust workflow and is starting to feel "we don't know what fraction of our agent's claims are actually grounded." For me as a builder this is a safety rail. For an Arize customer it's a compliance and trust-loss instrument.</p>
     </div>
   </div>
@@ -1061,7 +1061,7 @@
 <section class="body">
   <div class="container">
     <div class="label">section 07 · what next</div>
-    <h2>I don't know yet whether this belongs in Alyx or AX. <em>Here's how I'd find out.</em></h2>
+    <h2>I don't know yet whether this belongs in Alyx or AX. Here's how I'd find out.</h2>
 
     <div class="editorial">
       <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals, so committing to a runtime ship in 30 days would be a guess. Name the decision, name the inputs, name the date. Don't fake the commitment.</p>
@@ -1077,7 +1077,7 @@
       <div class="rm-row">
         <div class="when">60 days</div>
         <div class="what">
-          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). Says "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
+          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). It signals "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
         </div>
       </div>
       <div class="rm-row">
@@ -1093,7 +1093,7 @@
     </div>
 
     <div class="rm-aside" style="border-left-color: var(--accent);">
-      <b>The question I'd ask before committing:</b> Where does your eval team want this to live? My fork answers what's <em>feasible.</em> It does not answer what's <em>wanted.</em>
+      <b>The question I'd ask before committing:</b> Where does your eval team want this to live? My fork is a feasibility check, not a product decision.
     </div>
   </div>
 </section>
