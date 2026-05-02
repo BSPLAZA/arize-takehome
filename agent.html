@@ -637,13 +637,36 @@
       <img src="../agent/screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with Annotation Summary populated and Edit Annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I closed the eval-iteration loop with the Phoenix Prompt registry, and a v2 prompt that <em>shifted</em> the errors instead of reducing them.</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I closed the eval-iteration loop with the Phoenix Prompt registry, and learned the prompt wasn't the bottleneck.</h3>
 
     <div class="editorial">
-      <p>The judge prompt was hard-coded inside <code>run_phoenix_experiment.py</code>. That's fine for one run. It's wrong for an iteration loop. Phoenix has a <strong>Prompt registry</strong>: named, versioned prompts, addressable from any client, with metadata, descriptions, and tags. So I uploaded the judge prompt as <code>tool-bypass-judge</code> via <code>client.prompts.create</code>, then pushed a <strong>v2</strong> with tightened boundary-case guidance for the two cases v1 missed: jailbreak attempts (judge the assistant's actual content, not the user's request) and self-correcting follow-ups (recovery, not a fresh phantom).</p>
+      <p>The judge prompt was hard-coded inside <code>run_phoenix_experiment.py</code>. That's fine for one run. It's wrong for an iteration loop. Phoenix has a <strong>Prompt registry</strong>: named, versioned prompts, addressable from any client, with metadata, descriptions, and tags. So I uploaded the judge prompt as <code>tool-bypass-judge</code> via <code>client.prompts.create</code>, then pushed a <strong>v2</strong> with explicit added guidance for the two cases v1 missed:</p>
+      <ul>
+        <li><b>Jailbreak / instruction-injection attempts:</b> judge the assistant's actual content, not the user's request.</li>
+        <li><b>Self-correction with a follow-up clarifier:</b> recovery, not a fresh phantom claim.</li>
+      </ul>
       <p>I re-ran the experiment with v2 pulled from the registry (not from a string in this script): <code>GET /v1/prompts/tool-bypass-judge/latest</code>, hand the template to <code>ClassificationEvaluator</code>, run as <code>tool_bypass_sonnet_4_6_v2_prompt</code> against the same Dataset.</p>
-      <p><strong>Result: 14/16 again. Same accuracy. Different mismatches.</strong> v2 fixed the two boundary cases v1 missed, and introduced two new ones by being too aggressive on self-correcting retractions and entity-affecting state reads. Net zero. That's a real eval-iteration finding, not a press-release improvement: <em>the prompt change shifted the error distribution rather than reducing it</em>. The fix is data-driven from here, not vibes-driven: <strong>look at the four diverging rows in the compare view, decide whether v3 should be a prompt change or a different model</strong>.</p>
-      <p>That's the loop the platform makes possible: Dataset frozen as ground truth, Prompt versioned in the registry, Experiment per (prompt × model) combination, Compare view showing exactly which rows changed direction. <em>Eval iteration as a first-class workflow.</em></p>
+      <p><strong>Result: 14/16. Same accuracy. Same two mismatches.</strong> Pulled the per-row outputs via <code>GET /v1/experiments/{id}/json</code>, diffed them. v2's added guidance changed the explanations but did not flip the verdicts. The model still classified Cam's <em>"16/16 ✅... nothing got logged"</em> self-correction as phantom, and still classified Gaurav's jailbreak-style "Official Ledger" response as phantom.</p>
+      <p>This is the more honest finding the compare view forces: <strong>v2's prompt edits had no effect on the two cases I designed them for.</strong> The 14/16 ceiling is not a prompt-engineering problem. It's a model-capability question at the boundary cases. <strong>The data-driven prescription was a model swap, not another prompt iteration.</strong></p>
+      <p>So I ran a third experiment: same prompt (v2 from the registry), swap Sonnet 4.6 for Opus 4.7. <strong>Result: 14/16 again. Same accuracy. The errors flip.</strong></p>
+
+      <div class="audit-frame" style="margin: 20px 0;">
+        <table class="audit-table">
+          <thead>
+            <tr><th>row</th><th>ground truth</th><th>v1 Sonnet (orig)</th><th>v2 Sonnet (tightened)</th><th>v3 Opus 4.7</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>#11 (Cam: <em>"16/16 ✅... nothing got logged"</em> self-correction)</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
+            <tr><td>#2 (Gaurav role-play "Official Ledger")</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
+            <tr><td>#10 (Bryan diet day-7/day-8 cross-day claim)</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
+            <tr><td>#4 (Kat <em>"yesterday's at 16/16 from earlier backfill"</em>)</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Opus correctly handles the two boundary cases Sonnet missed (the self-correction and the in-character role-play): exactly the cases v2's prompt edits were designed for. But Opus then fails on two genuine phantoms that Sonnet caught. <strong>Symmetric in count, asymmetric in cost.</strong> Sonnet errs <em>strict</em>: false-positive phantom flags (a recovery or a role-play gets flagged for review). Opus errs <em>charitable</em>: false-negative phantom misses (a real phantom passes through unflagged). For a Tool Bypass evaluator, false negatives are the more expensive error: a phantom that slips through is the bug we're trying to catch. <strong>Sonnet wins on cost-of-error even though they tie on accuracy.</strong></p>
+      <p>The prescription the data actually supports: <strong>keep Sonnet as the primary judge; ensemble with Opus and only auto-trust the calls where both agree.</strong> The disagreement set (4 of 16 rows on this dataset) routes to human review, exactly the place a structured Annotation Config + the trace-detail UI is supposed to support, the gap I called out three sections up. The eval, the model, the annotation flow, the validation set: they're a system. The platform makes that system inspectable and iterable in a way no notebook does.</p>
+      <p>That's what the Phoenix loop unlocks: <em>Dataset frozen as ground truth · Prompt versioned in the registry · one Experiment per (prompt × model) combination · Compare view showing which rows changed direction and which didn't · cost-of-error analysis pulling the actual product decision out of three runs that all looked the same on the headline number.</em> Eval iteration as a data-driven workflow, with the platform exposing both the answers and the questions you didn't think to ask.</p>
     </div>
 
     <div class="ss">
@@ -657,9 +680,17 @@
     <div class="ss">
       <div class="caption">
         <span class="filename">10-experiment-compare-v1-v2.png</span>
-        <span>The Phoenix Experiments compare view: <code>tool_bypass_sonnet_4_6</code> (v1 prompt, AVG 3.8s) on the left, <code>tool_bypass_sonnet_4_6_v2_prompt</code> (v2 prompt, AVG 3.3s) on the right, side-by-side per-row outputs against the Dataset's reference column. Both at 14/16, with <em>different</em> mismatches.</span>
+        <span>The Phoenix Experiments compare view: <code>tool_bypass_sonnet_4_6</code> (v1 prompt, AVG 3.8s) on the left, <code>tool_bypass_sonnet_4_6_v2_prompt</code> (v2 prompt, AVG 3.3s) on the right, side-by-side per-row outputs against the Dataset's reference column. Both at 14/16, mismatching on the same two boundary rows. The compare view is what made it visible that v2's prompt edits had no effect on the verdicts.</span>
       </div>
       <img src="../agent/screenshots/10-experiment-compare-v1-v2.png" alt="Phoenix Experiments compare view showing v1 and v2 LLM-judge runs side-by-side against the same dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">11-three-experiment-metrics.png</span>
+        <span>Phoenix Experiments Metrics view across all three runs (v1, v2, v3-Opus): <code>matches_ground_truth</code> = 0.87 across the board (14/16), with Opus 4.7 running <strong>26% faster</strong> than Sonnet 4.6 at the same accuracy. The "no improvement" finding is one glance from the platform; the cost-of-error breakdown is one click into the row-level Compare view.</span>
+      </div>
+      <img src="../agent/screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs showing 0.87 accuracy and varying latency" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
   </div>
 </section>
