@@ -636,6 +636,31 @@
       </div>
       <img src="../agent/screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with Annotation Summary populated and Edit Annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I closed the eval-iteration loop with the Phoenix Prompt registry, and a v2 prompt that <em>shifted</em> the errors instead of reducing them.</h3>
+
+    <div class="editorial">
+      <p>The judge prompt was hard-coded inside <code>run_phoenix_experiment.py</code>. That's fine for one run. It's wrong for an iteration loop. Phoenix has a <strong>Prompt registry</strong>: named, versioned prompts, addressable from any client, with metadata, descriptions, and tags. So I uploaded the judge prompt as <code>tool-bypass-judge</code> via <code>client.prompts.create</code>, then pushed a <strong>v2</strong> with tightened boundary-case guidance for the two cases v1 missed: jailbreak attempts (judge the assistant's actual content, not the user's request) and self-correcting follow-ups (recovery, not a fresh phantom).</p>
+      <p>I re-ran the experiment with v2 pulled from the registry (not from a string in this script): <code>GET /v1/prompts/tool-bypass-judge/latest</code>, hand the template to <code>ClassificationEvaluator</code>, run as <code>tool_bypass_sonnet_4_6_v2_prompt</code> against the same Dataset.</p>
+      <p><strong>Result: 14/16 again. Same accuracy. Different mismatches.</strong> v2 fixed the two boundary cases v1 missed, and introduced two new ones by being too aggressive on self-correcting retractions and entity-affecting state reads. Net zero. That's a real eval-iteration finding, not a press-release improvement: <em>the prompt change shifted the error distribution rather than reducing it</em>. The fix is data-driven from here, not vibes-driven: <strong>look at the four diverging rows in the compare view, decide whether v3 should be a prompt change or a different model</strong>.</p>
+      <p>That's the loop the platform makes possible: Dataset frozen as ground truth, Prompt versioned in the registry, Experiment per (prompt × model) combination, Compare view showing exactly which rows changed direction. <em>Eval iteration as a first-class workflow.</em></p>
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">09-phoenix-prompt-versioning.png</span>
+        <span>The <code>tool-bypass-judge</code> prompt in the Phoenix registry. Two versions visible (v1, v2). Description, labels, metadata (<code>validation_set</code>, <code>evaluator_class</code>), and the Prompt Template body. The "Versions" tab is a 2 because the registry is tracking both edits across the eval iteration loop.</span>
+      </div>
+      <img src="../agent/screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail page for tool-bypass-judge, showing v1 and v2 versions, metadata, and prompt template" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
+
+    <div class="ss">
+      <div class="caption">
+        <span class="filename">10-experiment-compare-v1-v2.png</span>
+        <span>The Phoenix Experiments compare view: <code>tool_bypass_sonnet_4_6</code> (v1 prompt, AVG 3.8s) on the left, <code>tool_bypass_sonnet_4_6_v2_prompt</code> (v2 prompt, AVG 3.3s) on the right, side-by-side per-row outputs against the Dataset's reference column. Both at 14/16, with <em>different</em> mismatches.</span>
+      </div>
+      <img src="../agent/screenshots/10-experiment-compare-v1-v2.png" alt="Phoenix Experiments compare view showing v1 and v2 LLM-judge runs side-by-side against the same dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+    </div>
   </div>
 </section>
 
