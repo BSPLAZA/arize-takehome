@@ -583,7 +583,8 @@
     <div class="editorial">
       <p>The eval primitive in the proposal isn't just a code artifact. After Phoenix deployed and prod traffic flowed in, I ran a regex-based Tool Bypass classifier against all <strong>57</strong> production spans in the project, then pushed the results back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code>. Phoenix lifted the result into a project-level metric in the same row as Total Cost and Latency.</p>
       <p>Result: <strong><code>tool_bypass μ 1.00</code></strong>. All 57 turns grounded their action assertions in tool calls. Zero phantoms.</p>
-      <p>The same classifier, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 instructive false positives</strong> (the audit table lives in <a href="proposal.html#section-04">/proposal section 04</a>). The eval catches the failure when the failure exists; passes cleanly when the layered defense holds. That symmetry is the value: not "always green" and not "always red," but a primitive that <em>moves with the truth</em>.</p>
+      <p>The same regex variant, run earlier against the <strong>169 historical pre-v50 DM turns</strong> in <code>conversation_log</code>, flagged <strong>11 suspect turns: 7 real phantoms and 4 instructive false positives</strong> (full table in <a href="proposal.html#section-04">/proposal section 04</a>). The eval catches the failure when the failure exists; passes cleanly when the layered defense holds.</p>
+      <p>I also ran the <strong>full LLM-judge <code>ClassificationEvaluator</code></strong> from the Phoenix fork — Anthropic Claude Haiku 4.5 as judge, the YAML-defined prompt — against the same eleven flagged turns plus five known-grounded reference turns. Honest result: <strong>regex got 13/16 correct (81%), LLM-judge got 11/16 (69%)</strong>. The LLM correctly handled the boundary case regex couldn't (the "4/16" calendar-date collision), but produced two false-negatives on "goal hit" turns where it could see the tool name but not the tool result. Named failure: the prompt's <code>tool_spans</code> input is just call names, not call results. Adding result-context fixes both. <a href="proposal.html#section-05">Detailed comparison table in /proposal section 05.</a></p>
     </div>
 
     <div class="ss">
@@ -616,6 +617,34 @@
       <p>In the first thirty minutes after Phoenix deployed, the workspace ingested <strong>38 production traces</strong>. Over the same window, <code>conversation_log</code> wrote <strong>zero</strong> new rows. The audit was scanning a third of the surface, confidently. Phoenix was scanning the whole thing the moment it turned on.</p>
       <p>The eval primitive in the proposal is the small fix. The audit pipeline replacement is the bigger one. The same regex, the same evaluator, now covering the surfaces the SQL pipeline structurally couldn't see.</p>
       <p><b>And the SQL pipeline itself just learned to see them.</b> Same evening, the agent's main branch picked up commit <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>: a <code>log_scheduled_emission()</code> helper writing <code>source='scheduled'</code> rows from every job + admin path, an <code>audit_conversations.py</code> summary header that prints <code>by source: dm=N, scheduled=N, group=N</code>, and 9 new tests asserting <code>SELECT DISTINCT source</code> returns the full set. 107/107 tests pass on main. Forward-only. The next deploy starts logging scheduled emissions; the next audit run shows the new shape. Phoenix and the SQL audit are now genuinely dual coverage, not "Phoenix sees, SQL guesses."</p>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What the phantoms cost the users</h3>
+
+    <div class="editorial">
+      <p>I pulled the next three messages each user sent after every one of the seven historical phantoms. I was looking for the moment users noticed something was wrong. They almost never did.</p>
+    </div>
+
+    <div class="audit-frame">
+      <table class="audit-table">
+        <thead>
+          <tr><th>phantom</th><th>user</th><th>what they did next</th><th>recovery signal?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>#103 (Cam · "16/16 already from earlier backfill")</td><td>Cam</td><td class="snip">+0min: "I walked yesterday" → +1min: tried to log workout → +2min: "Show me my incomplete tasks from yesterday"</td><td class="judge">no — moved on</td></tr>
+          <tr><td>#117 (Kat · "water's locked at 16/16 for yesterday")</td><td>Kat</td><td class="snip">+0min: started logging book → +48min: "What is my diet?" → next day: "How many cups of water I at"</td><td class="judge">delayed (next day)</td></tr>
+          <tr><td>#153 (Bryan · "135g, 35 to go")</td><td>Bryan</td><td class="snip">+97min: "35 gram protein bar" — kept logging based on the phantom state</td><td class="judge">no — cascaded</td></tr>
+          <tr><td>#154 (Bryan · "170g, goal hit. 🎯")</td><td>Bryan</td><td class="snip">+15h: continued logging the next day, trusted the goal celebration</td><td class="judge">no — cascaded</td></tr>
+          <tr><td>#156 (Bryan · "day 8 at 75g")</td><td>Bryan</td><td class="snip">+56min: "Just had 40grams from spicy pork" — continued cascade</td><td class="judge">no — cascaded</td></tr>
+          <tr><td>#157 (Bryan · "115g, 55 to go")</td><td>Bryan</td><td class="snip">+18h: <em>"What have I eaten"</em> — verification check that exposed the cumulative phantom chain</td><td class="judge"><b>yes — 18h late</b></td></tr>
+          <tr><td>#162 (Bryan · "you're at 48g today")</td><td>Bryan</td><td class="snip">+0min: "Ok good I also just had a yogurt 11 grams" — Luke had self-corrected, Bryan continued</td><td class="judge">recovered same turn</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="editorial" style="margin-top: 24px;">
+      <p><b>Six of seven phantoms went undetected at the moment they happened.</b> Users acted on the phantom state. Bryan logged more food after a "goal hit" celebration; Cam logged a workout after a phantom water confirm. The bug's cost isn't measured at the failure turn. It's measured in what users did downstream while trusting confirmed-but-fake state.</p>
+      <p>The recovery signal, when it came, was a verification question: <em>"What have I eaten"</em> (Bryan, 18 hours later) and <em>"How many cups of water I at"</em> (Kat, the next day). Those messages are themselves a measurable behavior, an Eval primitive in their own right: <strong>frequency of unprompted state-verification queries</strong> as a proxy for trust loss. A team like Arize ships the eval and the metric together. The eval catches the bug; the metric confirms users are acting on stale or wrong state.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">And what Phoenix still doesn't see, even now</h3>

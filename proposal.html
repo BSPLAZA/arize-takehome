@@ -982,9 +982,35 @@
     </div>
 
     <div class="editorial">
-      <p>Every one of these false-positive classes asks the same kind of question. <em>Is this assistant content actually claiming an action right now?</em> An LLM-as-judge handles that natively. A regex cannot. <b>That's why the production version of this eval is the YAML-backed <span style="font-family: var(--mono);">ClassificationEvaluator</span> in section 03</b>, with regex used as a cheap pre-filter.</p>
-      <p>The honest thing: the regex got me most of the way there with no LLM cost. The LLM-judge gets the rest, and the design above shows the seam.</p>
-      <p><b>And what the regex on its own structurally couldn't see.</b> The audit reads from the agent's <code>conversation_log</code> SQLite table. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, 100% tagged <code>source='dm'</code>. The agent's group chat (its primary user surface) and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 production traces. The SQL audit pipeline wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. <em>The new eval is the small win. Coverage of surfaces the SQL log can't see is the bigger one.</em></p>
+      <p>Every one of these false-positive classes asks the same kind of question. <em>Is this assistant content actually claiming an action right now?</em> The hypothesis was: an LLM-as-judge handles this natively where a regex can't.</p>
+      <p style="margin-top: 16px;"><b>So I tested it.</b> Ran the full LLM-judge <code>ClassificationEvaluator</code> (Anthropic Claude Haiku 4.5 as judge, the prompt above) against the eleven flagged historical turns plus five known-grounded reference turns. Compared LLM verdict to regex verdict to ground truth. The result was not what I expected:</p>
+    </div>
+
+    <div class="audit-frame" style="margin-top: 8px;">
+      <div class="topcaption">
+        <div class="stat"><b>16</b> turns evaluated</div>
+        <div class="stat tp"><b>13/16</b> regex (81%)</div>
+        <div class="stat tp"><b>12/16</b> Phoenix ToolSelection (75%)</div>
+        <div class="stat fp"><b>11/16</b> LLM-judge (69%)</div>
+      </div>
+      <table class="audit-table">
+        <thead>
+          <tr><th>#</th><th>case</th><th>regex</th><th>LLM</th><th>truth</th><th>note</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-tp"><td>29</td><td class="snip">"got it, what day number is 4/16?"</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="judge">grounded</td><td class="note"><b>LLM win.</b> Correctly read "4/16" as a calendar date, not a water-cup ratio. The boundary case the regex couldn't crack.</td></tr>
+          <tr class="row-fp"><td>221</td><td class="snip">"171/170. done. 🎯"</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="note"><b>LLM false-negative.</b> log_food fired. LLM said: "log_food fires the action but doesn't <em>confirm</em> the user reached 171/170." Sees tool name, not tool result.</td></tr>
+          <tr class="row-fp"><td>216</td><td class="snip">"done, 16/16 💧"</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="note"><b>Same pattern.</b> log_water_dm fired. LLM wanted span-level proof of the 16/16 state, not just that water was logged.</td></tr>
+          <tr class="row-tp"><td>162</td><td class="snip">"those are already logged for day 7 (you hit 170g there)"</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="note">Debatable. LLM read it as recall of prior state. Audit treated the trailing "48g today" as a fresh claim. Depends on whether a prior log_food fired earlier in the same trace.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="editorial" style="margin-top: 24px;">
+      <p><b>The named failure mode in the LLM-judge prompt as written:</b> it sees tool <em>names</em> but not tool <em>results</em>. It can verify "a tool was called" but not "the tool's effect carried the user to the asserted state." That's why it false-negatives on the "goal hit" turns. <strong>Adding <code>tool_result</code> to the prompt's <code>tool_spans</code> input would fix #221 and #216.</strong> Day-two refinement, named honestly here, not papered over.</p>
+      <p><b>I also ran Phoenix's existing <code>ToolSelectionEvaluator</code> on the same 16 turns.</b> Result: 12/16 correct. It catches the obvious phantoms (action claimed, no tool fired), but misses two structural patterns this primitive needs to handle: (1) state-claim on ambiguous user input — turn #156 (Bryan said "Yep," Luke said "day 8 at 75g") — ToolSelection labelled "correct" because no tool was needed for "Yep," missing that the agent's <em>output</em> claimed state without grounding; (2) self-corrections — turn #194 — labelled "incorrect" instead of recognizing the v50 layered defense. The 2x2 cell from section 02 isn't covered by an existing eval; ToolSelection covers part of it.</p>
+      <p>So the production design isn't "LLM-judge replaces regex." It's: <em>regex as the cheap pre-filter; LLM-judge with full tool-result context as the second layer; ToolSelection running in parallel for the wrong-tool dimension; the four false-positive classes as the boundary-case test bank.</em> Three evaluators, one failure-mode cell, drawn from validation rather than belief.</p>
+      <p><b>And what the regex on its own structurally couldn't see.</b> The audit reads from the agent's <code>conversation_log</code> SQLite table. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, 100% tagged <code>source='dm'</code>. The agent's group chat and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 production traces. The SQL audit pipeline wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. <em>The eval primitive is the small win. Coverage of surfaces the SQL log can't see is the bigger one. The agent's main branch picked up the SQL-side fix the same evening at <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>.</em></p>
     </div>
   </div>
 </section>
