@@ -341,7 +341,7 @@
   <div class="container">
     <div class="eyebrow">workflow feedback</div>
     <h1>Field notes from instrumenting.</h1>
-    <p class="sub">An honest read of the Phoenix Cloud onboarding I ran today on Luke, plus an outside-in observation pass on AX (Alyx, Copilot, the AX product surface) from documentation and product tour. Specific moments. What I'd change.</p>
+    <p class="sub">An honest read of the Phoenix Cloud onboarding I ran today on Luke, plus an outside-in pass on AX (Alyx, Copilot, the product surface) from documentation and the product tour. Specific moments. What I'd change.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
@@ -357,12 +357,12 @@
     <h2>Two halves, two methods, both honest about which is which.</h2>
 
     <div class="editorial">
-      <p>Phoenix is the half I used. I instrumented Luke this afternoon and got real traces flowing into a Phoenix Cloud workspace. The friction below comes from my actual session, with timestamps where they help.</p>
-      <p>AX is the half I observed. I worked the public AX product pages, the Alyx and Copilot documentation, the demo videos, and the customer case studies. I did not run a paid trial. I'm honest about which observations are first-hand versus which are second-hand reads of the product surface, because <em>"the docs implied X"</em> is a different signal than <em>"I clicked X and it broke."</em></p>
+      <p>Phoenix is the half I used. I instrumented Luke this afternoon and got traces flowing into a Phoenix Cloud workspace. The friction below comes from that session.</p>
+      <p>AX is the half I observed. I worked the public product pages, the Alyx and Copilot documentation, the demo videos, the customer case studies. I did not run a paid trial. I'm flagging which observations are first-hand and which are second-hand reads, because "the docs implied X" is a different signal than "I clicked X and it broke."</p>
     </div>
 
     <div class="meta-note">
-      <b>Honesty rule:</b> the Phoenix friction is from a real installation; the AX friction is from a docs and product-tour pass. Both are useful for different reasons. The Phoenix half tells you what I'd change as a builder; the AX half tells you what I'd ask the team about as a PM.
+      <b>Honesty rule:</b> Phoenix friction is from a live install. AX friction is from a docs and product-tour pass. The Phoenix half is what I'd change as a builder. The AX half is what I'd ask the team about as a PM.
     </div>
   </div>
 </section>
@@ -374,8 +374,8 @@
     <h2>Onboarding to first trace, in one afternoon.</h2>
 
     <div class="editorial">
-      <p>Signed in at <code>app.phoenix.arize.com</code> via GitHub OAuth, generated an API key from General → API Keys, set <code>PHOENIX_API_KEY</code> + <code>PHOENIX_COLLECTOR_ENDPOINT</code> in Luke's <code>.env</code>. Quickstart followed almost verbatim: two pip installs, four lines of <code>register()</code> + <code>AnthropicInstrumentor().instrument()</code> in Luke's startup path, deploy. The bot's <code>messages.create</code> calls started landing as LLM spans inside thirty seconds. After the deploy I pulled the prod span set with <code>client.spans.get_spans_dataframe()</code>, ran a regex Tool Bypass classifier in Python, and pushed the verdicts back as annotations with <code>client.spans.log_span_annotations_dataframe()</code>. Phoenix lifted the result into a project-header metric next to Total Cost and Latency. <em>That feedback loop, when it works, is the strongest thing about the platform.</em></p>
-      <p>What follows is the friction I hit between sign-in and seeing my eval go green.</p>
+      <p>Signed in at <code>app.phoenix.arize.com</code> via GitHub OAuth, generated an API key from General → API Keys, set <code>PHOENIX_API_KEY</code> and <code>PHOENIX_COLLECTOR_ENDPOINT</code> in Luke's <code>.env</code>. Quickstart followed almost verbatim: two pip installs, four lines of <code>register()</code> and <code>AnthropicInstrumentor().instrument()</code> in Luke's startup, deploy. The bot's <code>messages.create</code> calls started landing as LLM spans inside thirty seconds. I then pulled the live span set with <code>client.spans.get_spans_dataframe()</code>, ran a regex Tool Bypass classifier in Python, and pushed the verdicts back as annotations with <code>client.spans.log_span_annotations_dataframe()</code>. Phoenix lifted the result into a project-header metric next to Total Cost and Latency. That feedback loop, when it works, is the strongest thing about the platform.</p>
+      <p>The friction I hit between sign-in and seeing my eval go green:</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I hit, in order</h3>
@@ -385,8 +385,8 @@
         <div class="num">01</div>
         <div class="body">
           <span class="what"><code>Client(base_url=...)</code> needs the workspace path or every call returns 401.</span>
-          The Cloud quickstart shows <code>https://app.phoenix.arize.com</code> as the endpoint. Passing that to <code>Client</code> got me a 401 on the first <code>get_spans_dataframe</code>. Switching to <code>https://app.phoenix.arize.com/s/bsplaza</code> fixed it. Three attempts to land on the right shape.
-          <span class="so-what">Either accept the bare domain and infer the workspace from the API key (the JWT carries it), or surface a clear error: <em>"this key is bound to workspace 'bsplaza'; set base_url to https://app.phoenix.arize.com/s/bsplaza."</em> Right now the failure is a generic <code>HTTPStatusError: 401</code>.</span>
+          The Cloud quickstart shows <code>https://app.phoenix.arize.com</code> as the endpoint. Passing that to <code>Client</code> returned 401 on the first <code>get_spans_dataframe</code>. Switching to <code>https://app.phoenix.arize.com/s/bsplaza</code> fixed it. Three attempts to land on the right shape.
+          <span class="so-what">Accept the bare domain and infer the workspace from the API key (the JWT carries it), or surface a clear error: "this key is bound to workspace 'bsplaza'; set base_url to https://app.phoenix.arize.com/s/bsplaza." Right now the failure is a generic <code>HTTPStatusError: 401</code>.</span>
         </div>
       </div>
 
@@ -394,8 +394,8 @@
         <div class="num">02</div>
         <div class="body">
           <span class="what">API key plumbing has five working paths and no canonical one.</span>
-          <code>Client(api_key=...)</code> works. <code>os.environ['PHOENIX_API_KEY']</code> works. <code>headers={'api_key': key}</code> works. <code>headers={'Authorization': f'Bearer {key}'}</code> works. <code>PHOENIX_CLIENT_HEADERS=api_key=&lt;key&gt;</code> for the OTLP exporter works. All valid, none documented as the recommended one. Two minutes spent finding which to use.
-          <span class="so-what">Pick a recommended path and put it at the top of the SDK quickstart. The other four can be alternates further down.</span>
+          <code>Client(api_key=...)</code> works. <code>os.environ['PHOENIX_API_KEY']</code> works. <code>headers={'api_key': key}</code> works. <code>headers={'Authorization': f'Bearer {key}'}</code> works. <code>PHOENIX_CLIENT_HEADERS=api_key=&lt;key&gt;</code> for the OTLP exporter works. All valid, none flagged as recommended. Two minutes deciding which to use.
+          <span class="so-what">Pick a recommended path and put it at the top of the SDK quickstart. The other four can be alternates.</span>
         </div>
       </div>
 
@@ -403,8 +403,8 @@
         <div class="num">03</div>
         <div class="body">
           <span class="what">DataFrame columns aren't list-flattened the way you'd expect.</span>
-          <code>get_spans_dataframe()</code> returns a column named <code>attributes.llm.output_messages</code> whose values are <em>Python lists of dicts</em>, not flattened to <code>attributes.llm.output_messages.0.message.content</code> the way attribute paths usually are. My first classifier returned empty strings for every row because the dotted path didn't exist. Cost: ~3 minutes to introspect the actual columns and rewrite the extractor.
-          <span class="so-what">Either flatten consistently, or surface the schema in the docstring of <code>get_spans_dataframe</code>. The current behavior is correct but invisible until you hit it.</span>
+          <code>get_spans_dataframe()</code> returns a column <code>attributes.llm.output_messages</code> whose values are Python lists of dicts, not flattened to <code>attributes.llm.output_messages.0.message.content</code> the way attribute paths usually are. My first classifier returned empty strings for every row because the dotted path didn't exist. Three minutes to introspect the columns and rewrite the extractor.
+          <span class="so-what">Flatten consistently, or surface the schema in the <code>get_spans_dataframe</code> docstring. Current behavior is correct but invisible until you hit it.</span>
         </div>
       </div>
 
@@ -412,8 +412,8 @@
         <div class="num">04</div>
         <div class="body">
           <span class="what">The simplest evaluator primitive is buried.</span>
-          I built a custom regex classifier from scratch. After it was working, I ran <code>dir(phoenix.evals.metrics)</code> out of curiosity and discovered <code>MatchesRegex</code>. It would have replaced thirty lines of my custom code. The docs lead with the LLM-judge evaluators (Hallucination, Faithfulness, Refusal); the lighter-weight building blocks aren't on the same surface.
-          <span class="so-what">Add a "before you write your own evaluator" page. List the primitives (<code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>) with one-line use cases. Save the next person thirty lines.</span>
+          I wrote a custom regex classifier. After it worked, I ran <code>dir(phoenix.evals.metrics)</code> out of curiosity and found <code>MatchesRegex</code>. It would have replaced thirty lines of my code. Docs lead with the LLM-judge evaluators (Hallucination, Faithfulness, Refusal); the lighter-weight building blocks aren't on the same page.
+          <span class="so-what">Add a "before you write your own evaluator" page. List the primitives (<code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>) with one-line use cases. Saves the next person thirty lines.</span>
         </div>
       </div>
 
@@ -421,8 +421,8 @@
         <div class="num">05</div>
         <div class="body">
           <span class="what">The trace-to-eval handoff is invisible from the UI.</span>
-          The trace detail panel's annotations sidebar reads <em>"No annotation configurations for this project."</em> No setup CTA. No "run a built-in eval on this trace" prompt. The way I actually got annotations into the UI was via the Python SDK in a separate script. From inside the UI, you can't.
-          <span class="so-what">Wire the empty annotations panel to a one-click flow: pick a built-in eval (Hallucination, Function Call, Tool Bypass), pick a model, run on the current trace. The first eval should be a UI button, not a Python script. The SDK path stays for batch and CI.</span>
+          The trace-detail annotations sidebar reads "No annotation configurations for this project." No setup CTA. No "run a built-in eval on this trace" prompt. The only way I got annotations into the UI was via the Python SDK in a separate script. From inside the UI, you can't.
+          <span class="so-what">Wire the empty annotations panel to a one-click flow: pick a built-in eval, pick a model, run on the current trace. The first eval should be a button, not a Python script. The SDK path stays for batch and CI.</span>
         </div>
       </div>
 
@@ -430,7 +430,7 @@
         <div class="num">06</div>
         <div class="body">
           <span class="what">The filter bar expects you to already know the query syntax.</span>
-          The trace list filter input takes <code>span_kind == 'LLM'</code> as raw filter syntax. No query builder, no column-header click-to-filter, no autocomplete chip flow. New users either guess or read a doc.
+          The trace list filter takes <code>span_kind == 'LLM'</code> as raw syntax. No query builder, no column-header click-to-filter, no autocomplete chips. New users guess or read a doc.
           <span class="so-what">Column-header dropdowns for the common filters (kind, status, latency bucket). Keep the raw-query input for power users. The first session shouldn't require a doc.</span>
         </div>
       </div>
@@ -439,8 +439,8 @@
         <div class="num">07</div>
         <div class="body">
           <span class="what">URLs use base64 IDs instead of human-readable slugs.</span>
-          Project and trace URLs are base64-encoded GraphQL global IDs (<code>UHJvamVjdDox</code>). Cosmetic, but it makes URLs unshareable in chat or in screenshots, and the security layer in some browser-automation tools refuses to navigate them as a defense.
-          <span class="so-what">Add a slug or short-id alongside the base64. Default to the slug in the URL bar. Keep the base64 as the canonical id for the API.</span>
+          Project and trace URLs are base64-encoded GraphQL global IDs (<code>UHJvamVjdDox</code>). Cosmetic, but it makes URLs unfriendly to share in chat or screenshots, and some browser-automation tools refuse to navigate them as a defense.
+          <span class="so-what">Add a slug or short-id alongside the base64. Default to the slug in the URL bar. Keep base64 as the canonical id for the API.</span>
         </div>
       </div>
 
@@ -448,8 +448,8 @@
         <div class="num">08</div>
         <div class="body">
           <span class="what">Annotation Configs are workspace-wide via REST, but the trace-detail "Edit Annotations" panel needs a per-project binding I couldn't reach via the public API.</span>
-          I created <code>tool_bypass</code> as a categorical annotation config via <code>POST /v1/annotation_configs</code> (200 OK). Pushed annotations onto recent spans via <code>log_span_annotations_dataframe</code> (200 OK). The trace-detail panel's <strong>Annotation Summary</strong> shows them rolled up. But the <strong>Edit Annotations</strong> panel right below reads <em>"No annotation configurations for this project."</em> The schema and the data flow work; the click-to-annotate UI doesn't pick them up. <code>POST</code> and <code>PUT</code> to <code>/v1/projects/{id}/annotation_configs</code> both return 405. So a reviewer in the trace UI still can't structurally label a span without a Python notebook.
-          <span class="so-what">Auto-bind workspace configs to all projects, expose the binding endpoint over REST, or surface a "use in this project" toggle on the workspace settings page. The fix is small. The product impact is real: structured annotations stop being a Python-only workflow and become reachable for any reviewer in the trace detail UI.</span>
+          I created <code>tool_bypass</code> as a categorical annotation config via <code>POST /v1/annotation_configs</code> (200 OK). Pushed annotations onto recent spans via <code>log_span_annotations_dataframe</code> (200 OK). The trace-detail <strong>Annotation Summary</strong> shows them rolled up. But the <strong>Edit Annotations</strong> panel right below reads "No annotation configurations for this project." The schema and the data flow work; the click-to-annotate UI doesn't pick them up. <code>POST</code> and <code>PUT</code> to <code>/v1/projects/{id}/annotation_configs</code> both return 405. So a reviewer in the trace UI still can't structurally label a span without a Python notebook.
+          <span class="so-what">Auto-bind workspace configs to all projects, expose the binding endpoint over REST, or surface a "use in this project" toggle on the workspace settings page. The fix is small. The impact is real: structured annotations stop being a Python-only workflow and become reachable for any reviewer in the trace detail UI.</span>
         </div>
       </div>
     </div>
@@ -457,8 +457,8 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What worked well</h3>
 
     <div class="editorial">
-      <p>The <em>"Waiting for traces to arrive"</em> empty state is the strongest part of the onboarding. It does not leave the user stranded. It puts the integration picker and code snippet immediately on screen. Most products fail this moment by showing a marketing splash or a docs link; Phoenix shows the next action.</p>
-      <p>The Stream toggle (live trace feed) is well-positioned for the developer's first <em>"did it work?"</em> moment. The span-kind chips (color-coded agent, chain, tool) make scan-reading the table fast. Python and TypeScript get equal billing from day one. No language hierarchy.</p>
+      <p>The "Waiting for traces to arrive" empty state is the strongest part of onboarding. It puts the integration picker and code snippet on screen immediately. Most products fail this moment with a marketing splash or a docs link; Phoenix shows the next action.</p>
+      <p>The Stream toggle (live trace feed) is well-positioned for the developer's first "did it work?" moment. The span-kind chips (color-coded agent, chain, tool) make the table fast to scan. Python and TypeScript get equal billing from day one.</p>
     </div>
   </div>
 </section>
@@ -470,11 +470,11 @@
     <h2>An outside-in read on the surfaces I'd actually work on.</h2>
 
     <div class="editorial">
-      <p>This half is from documentation, product pages, and the Alyx demo video. I did not run a paid trial. I'm not pretending the friction below is from inside the product. I'm pretending it's from a PM doing the kind of read I'd do before a first product review.</p>
+      <p>This half is from documentation, product pages, and the Alyx demo video. I did not run a paid trial. I'm not pretending the friction below is from inside the product. It's the read a PM does before a first product review.</p>
     </div>
 
     <div class="meta-note">
-      <b>What I'd want before joining:</b> a real seat in AX. The proposal in the next section leads with Alyx for a reason. If I joined the team, the first thirty days would be spent inside that surface, not outside it. The notes below are what I'd bring to the first meeting; they aren't what I'd bring to the second.
+      <b>What I'd want before joining:</b> a seat in AX. The proposal leads with Alyx for a reason. If I joined the team, the first thirty days would be spent inside that surface, not outside it. The notes below are what I'd bring to the first meeting, not the second.
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I observed</h3>
@@ -484,7 +484,7 @@
         <div class="num">01</div>
         <div class="body">
           <span class="what">Alyx's empty state: what does it do for me on day one?</span>
-          From the demo and docs, Alyx is positioned as an AI agent that helps users debug their AI app. The first-load empty state is unclear from the public surface: what does Alyx know about my app before I've explained anything? Does it auto-discover from my traces? Or wait for me to type?
+          From the demo and docs, Alyx is positioned as an AI agent that helps users debug their AI app. The first-load empty state isn't clear from the public surface. What does Alyx know about my app before I've explained anything? Does it auto-discover from my traces, or wait for me to type?
           <span class="so-what">A PM hire question, not a feedback note: what's the time-to-value loop for Alyx, and is empty-state agency the right place to invest? Tool Bypass at runtime in Alyx (the proposal's 30-day target) shifts that loop from "what do I ask Alyx" to "Alyx tells me before I ask."</span>
         </div>
       </div>
@@ -493,7 +493,7 @@
         <div class="num">02</div>
         <div class="body">
           <span class="what">Copilot's role versus Alyx's role isn't obvious from the marketing surface.</span>
-          The product pages mention both Copilot and Alyx. The line between them, Copilot as a debug companion in the product and Alyx as an agent that runs on the customer's app, is implied but not stated cleanly.
+          The product pages mention both. The line between them (Copilot as a debug companion in the product, Alyx as an agent on the customer's app) is implied but not stated.
           <span class="so-what">A positioning question I'd want to debate internally. The shortest version of the answer ("Copilot helps you understand traces; Alyx helps your app evaluate itself") would shorten the customer onboarding conversation.</span>
         </div>
       </div>
@@ -502,8 +502,8 @@
         <div class="num">03</div>
         <div class="body">
           <span class="what">The Bedrock AgentCore partnership is significant and barely visible.</span>
-          AX shipped a partnership with AWS Bedrock AgentCore. From the product surface, this is treated as a supported integration. From the customer-decision surface, it's a major signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX.
-          <span class="so-what">If this is the wedge for the AWS-anchored enterprise segment, treat it like the wedge. The current product copy reads as "another integration." Promote it.</span>
+          AX shipped a partnership with AWS Bedrock AgentCore. From the product surface, it reads as a supported integration. From the customer-decision surface, it's a major signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX.
+          <span class="so-what">If this is the wedge for the AWS-anchored enterprise segment, treat it like the wedge. Current copy reads as "another integration." Promote it.</span>
         </div>
       </div>
 
@@ -511,8 +511,8 @@
         <div class="num">04</div>
         <div class="body">
           <span class="what">The customer case studies are technical, not commercial.</span>
-          The case-study pages I read described the implementation: which models, which evals, which features. They didn't describe the commercial outcome: adoption inside the customer's company, time-to-value, second-quarter renewal signals.
-          <span class="so-what">Add a top-line outcome metric to each case study (time-to-first-eval, percent of teams adopted, weeks-to-second-product-line). The technical depth is great. The commercial framing is what gets the next prospect to convert.</span>
+          The case-study pages described implementation: which models, which evals, which features. They didn't describe commercial outcomes: adoption inside the customer's company, time-to-value, second-quarter renewal signals.
+          <span class="so-what">Add a top-line outcome metric to each case study (time-to-first-eval, percent of teams adopted, weeks-to-second-product-line). Technical depth is good. Commercial framing is what converts the next prospect.</span>
         </div>
       </div>
     </div>
@@ -559,9 +559,9 @@
     <h2>Three things, in order of conviction.</h2>
 
     <div class="editorial">
-      <p><b>One.</b> The trace-to-eval handoff in Phoenix should be a one-click flow from any trace, not a docs page. If the user can't get from <em>"this trace looks suspicious"</em> to <em>"this eval said FAIL with this evidence"</em> in two clicks, the eval library doesn't earn its place above the trace. This is the change with the highest first-month impact for new Phoenix users.</p>
-      <p><b>Two.</b> Alyx needs a runtime grounding gate. The proposal in the next section makes this case. Tool Bypass at runtime, applied to Alyx's own action assertions, is the kind of self-eval that turns "trust me, the AI agent helped" into "here's why the AI agent's claim is grounded." The same primitive Phoenix gets in OSS lives at runtime in AX, and that composition is what justifies the AX premium tier.</p>
-      <p><b>Three.</b> Customer case studies need commercial framing, not technical framing. <em>Time-to-first-eval, percent-of-teams-adopted, weeks-to-second-product-line.</em> The technical depth is there; the commercial signal isn't. Future prospects should read a case study and learn the buyer's outcome, not the buyer's stack.</p>
+      <p><b>One.</b> The trace-to-eval handoff in Phoenix should be a one-click flow from any trace, not a docs page. If the user can't get from "this trace looks suspicious" to "this eval said FAIL with this evidence" in two clicks, the eval library doesn't earn its place above the trace. Highest first-month impact for new Phoenix users.</p>
+      <p><b>Two.</b> Alyx needs a runtime grounding gate. The proposal makes this case. Tool Bypass at runtime, applied to Alyx's own action assertions, turns "trust me, the AI agent helped" into "here's why the AI agent's claim is grounded." Same primitive that Phoenix ships in OSS, lifted into runtime in AX. That composition is what justifies the AX premium tier.</p>
+      <p><b>Three.</b> Customer case studies need commercial framing, not technical framing. Time-to-first-eval, percent-of-teams-adopted, weeks-to-second-product-line. Technical depth is there; commercial signal isn't. Future prospects should read a case study and learn the buyer's outcome, not the buyer's stack.</p>
     </div>
   </div>
 </section>

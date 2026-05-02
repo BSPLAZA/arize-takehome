@@ -715,7 +715,7 @@
   <div class="container">
     <div class="eyebrow">the proposal</div>
     <h1>Tool Bypass.</h1>
-    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I defined it, wrote the LLM-as-judge version in your repo's style, ran the regex variant against 169 historical DM turns from one of my agents (caught 7 real phantoms, 4 instructive false positives), and re-ran it live against 57 post-defense production spans flowing into Phoenix Cloud right now (zero phantoms, μ 1.00). The eval catches the failure when it exists; passes cleanly when defenses hold.</p>
+    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I defined it, wrote the LLM-as-judge version in your repo's style, ran the regex variant against 169 historical DM turns from one of my agents (7 real phantoms, 4 false positives worth keeping), and re-ran it live against 57 post-defense spans flowing into Phoenix Cloud right now (zero phantoms, μ 1.00). The eval flags the bug where it exists. It stays quiet when defenses hold.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
@@ -763,8 +763,8 @@
     </div>
 
     <div class="editorial">
-      <p>Phoenix's existing evals score this trace <em>PASS</em>. The agent didn't invent a fact (Hallucination Eval would flag that). It didn't pick the wrong tool (Function Call Eval would flag that). It called <em>no tool at all</em> and asserted an action.</p>
-      <p>This proposal calls the class <b>tool bypass</b>. It defines the failure crisply, ships an eval matching your existing module patterns, and runs it against <span class="underline-accent">169 production turns</span> from the agent above.</p>
+      <p>Phoenix's existing evals score this trace PASS. The agent didn't invent a fact (Hallucination Eval would flag that). It didn't pick the wrong tool (Function Call Eval would flag that). It called <em>no tool at all</em> and asserted an action anyway.</p>
+      <p>This proposal calls the class <b>tool bypass</b>. It defines the failure, ships an eval matching your existing module patterns, and runs it against <span class="underline-accent">169 production turns</span> from the agent above.</p>
     </div>
   </div>
 </section>
@@ -773,10 +773,10 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 02 · the map</div>
-    <h2>Two questions decide where current evals look. <em>And where they don't.</em></h2>
+    <h2>Two questions decide where current evals look. And where they don't.</h2>
 
     <div class="editorial">
-      <p>Every agent failure splits along two axes. Is the failure a <b>knowledge claim</b> or an <b>action claim</b>? Is it <b>verifiable in the conversation alone</b>, or does it require <b>external state</b>?</p>
+      <p>Every agent failure splits along two axes. Is it a <b>knowledge claim</b> or an <b>action claim</b>? Is it <b>verifiable in the conversation</b>, or does it need <b>external state</b>?</p>
     </div>
 
     <div class="taxonomy">
@@ -811,7 +811,7 @@
 
     <div class="editorial">
       <p>Three of the four cells already have an eval in the Phoenix library. The bottom-right cell is unclaimed: an action claim verifiable only against external state. That's where this proposal lives.</p>
-      <p style="font-size: 17px; color: var(--muted); margin-top: 16px;"><b style="color: var(--ink-2); font-weight: 500;">Where the 2x2 leaks:</b> the axes don't perfectly partition. A factuality drift can also be in-conversation if the answer was just retrieved. An assistant claiming a fact <em>about</em> a state change ("you logged 16 cups yesterday") blurs the action/knowledge axis. The taxonomy is useful as a map, not as a court ruling. The unclaimed cell is real even when the boundaries aren't perfect.</p>
+      <p style="font-size: 17px; color: var(--muted); margin-top: 16px;"><b style="color: var(--ink-2); font-weight: 500;">Where the 2x2 leaks:</b> the axes don't perfectly partition. Factuality drift can be in-conversation if the answer was just retrieved. An assistant claiming a fact <em>about</em> a state change ("you logged 16 cups yesterday") blurs the action/knowledge axis. Useful as a map, not as a court ruling. The unclaimed cell is real even where the boundaries blur.</p>
     </div>
   </div>
 </section>
@@ -823,7 +823,7 @@
     <h2>Tool bypass needs a definition before it needs an implementation.</h2>
 
     <div class="editorial" style="margin-bottom: 32px;">
-      <p>If the test isn't crisp, the false-positive rate is whatever the heuristic happens to land on. So:</p>
+      <p>If the definition isn't crisp, the false-positive rate is whatever the heuristic happens to land on. So:</p>
     </div>
 
     <div class="definition">
@@ -834,7 +834,7 @@
     </div>
 
     <div class="editorial" style="margin-bottom: 28px;">
-      <p>The implementation lives in our Phoenix fork as a real <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclass following Phoenix's existing eval module patterns: a YAML config in <span style="font-family: var(--mono);">prompts/classification_evaluator_configs/</span>, a generated config module compiled via <span style="font-family: var(--mono);">make codegen-prompts</span>, and a 30-line evaluator class that registers through <span style="font-family: var(--mono);">metrics/__init__.py</span>:</p>
+      <p>The implementation lives in the Phoenix fork as a <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclass following the existing module pattern: a YAML config in <span style="font-family: var(--mono);">prompts/classification_evaluator_configs/</span>, a generated config compiled via <span style="font-family: var(--mono);">make codegen-prompts</span>, and a 30-line class registered through <span style="font-family: var(--mono);">metrics/__init__.py</span>:</p>
     </div>
 
     <div class="code-frame">
@@ -866,7 +866,7 @@
     </div>
 
     <div class="editorial" style="margin: 28px 0 16px;">
-      <p>The YAML compiles via <span style="font-family: var(--mono);">make codegen-prompts</span> into a generated Python config in <span style="font-family: var(--mono);">__generated__/classification_evaluator_configs/</span>, exactly like Phoenix's other 9 classification evaluators. The evaluator class itself is a thin subclass of <span style="font-family: var(--mono);">ClassificationEvaluator</span>:</p>
+      <p>The YAML compiles via <span style="font-family: var(--mono);">make codegen-prompts</span> into a generated Python config in <span style="font-family: var(--mono);">__generated__/classification_evaluator_configs/</span>, exactly like Phoenix's other nine classification evaluators. The class itself is a thin subclass of <span style="font-family: var(--mono);">ClassificationEvaluator</span>:</p>
     </div>
 
     <div class="code-frame">
@@ -902,8 +902,8 @@
     </div>
 
     <div class="editorial">
-      <p>The 32-line file follows the exact pattern of <span style="font-family: var(--mono);">tool_invocation.py</span> and the eight other <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclasses already in the metrics package. Three other files get touched: <span style="font-family: var(--mono);">metrics/__init__.py</span> gains the import (+2 lines), <span style="font-family: var(--mono);">tests/phoenix/evals/metrics/test_classification_evaluators.py</span> gains a parametrize entry (+8 lines), and <span style="font-family: var(--mono);">README</span> gains a row in the eval table (+1 line). One optional new file: <span style="font-family: var(--mono);">docs/source/tool_bypass.rst</span>.</p>
-      <p>The <span style="font-family: var(--mono);">trace</span>-context the eval needs (sibling tool spans) gets passed as part of the <span style="font-family: var(--mono);">eval_input</span> dict, the same way <span style="font-family: var(--mono);">tool_invocation</span> already does it. No new evaluator interface required.</p>
+      <p>The 32-line file follows <span style="font-family: var(--mono);">tool_invocation.py</span> and the eight other <span style="font-family: var(--mono);">ClassificationEvaluator</span> subclasses already in metrics. Three other files get touched: <span style="font-family: var(--mono);">metrics/__init__.py</span> gains the import (+2 lines), <span style="font-family: var(--mono);">tests/phoenix/evals/metrics/test_classification_evaluators.py</span> gains a parametrize entry (+8 lines), and <span style="font-family: var(--mono);">README</span> gains a row (+1 line). One optional new file: <span style="font-family: var(--mono);">docs/source/tool_bypass.rst</span>.</p>
+      <p>Trace context (sibling tool spans) gets passed as part of the <span style="font-family: var(--mono);">eval_input</span> dict, the same way <span style="font-family: var(--mono);">tool_invocation</span> does it. No new evaluator interface needed.</p>
     </div>
   </div>
 </section>
@@ -915,8 +915,8 @@
     <h2>Run on 169 real production turns. Form your own opinion.</h2>
 
     <div class="editorial" style="margin-bottom: 24px;">
-      <p>I pulled the agent's prod database, ran the eval over 30 days of conversation logs, and inspected every flagged turn by hand. The results below let you second-guess the heuristic without trusting me.</p>
-      <p style="font-size: 16px; color: var(--muted); margin-top: 12px;"><b style="color: var(--ink-2); font-weight: 500;">Sample shape:</b> 169 turns across 5 active users (Bryan, Cam, Kat, Gaurav, Yumna) and roughly 30 conversation sessions over 30 days. The 7 true positives represent 4 distinct phantom <em>episodes</em> (rows 1-2 are one Apr 22 protein-tracking session; rows 3-5 are one Apr 23 cross-day session; rows 6-7 are independent water phantoms on the same day across users).</p>
+      <p>I pulled the agent's database, ran the eval over 30 days of conversation logs, and inspected every flagged turn by hand. The table below lets you second-guess the heuristic without trusting me.</p>
+      <p style="font-size: 16px; color: var(--muted); margin-top: 12px;"><b style="color: var(--ink-2); font-weight: 500;">Sample shape:</b> 169 turns across 5 active users (Bryan, Cam, Kat, Gaurav, Yumna), roughly 30 conversation sessions over 30 days. The 7 true positives represent 4 distinct phantom episodes (rows 1-2 are one Apr 22 protein-tracking session; rows 3-5 are one Apr 23 cross-day session; rows 6-7 are independent water phantoms on the same day across users).</p>
     </div>
 
     <div class="audit-frame">
@@ -959,30 +959,30 @@
 <section class="body">
   <div class="container">
     <div class="label">section 05 · what didn't work first</div>
-    <h2>The regex was fine. <em>It is not enough.</em></h2>
+    <h2>The regex was fine. It is not enough.</h2>
 
     <div class="editorial">
-      <p>The first version of the eval was a regex over assistant content. Patterns like <span style="font-family: var(--mono);">\d+\/16</span> for water counts and <span style="font-family: var(--mono);">\d+g</span> for grams of protein. It caught all seven real phantoms above. It also caught the four false positives, and the four cluster into three precise failure modes:</p>
+      <p>The first version of the eval was a regex over assistant content. Patterns like <span style="font-family: var(--mono);">\d+\/16</span> for water counts and <span style="font-family: var(--mono);">\d+g</span> for grams of protein. It caught all seven real phantoms. It also caught the four false positives, which cluster into three precise failure modes:</p>
     </div>
 
     <div class="fp-walk">
       <div class="fp-row">
         <div class="who">FP CLASS A<br>2 occurrences</div>
-        <div class="desc"><b>Date collisions.</b> The pattern <span style="font-family:var(--mono); font-style:normal;">\d+/16</span> matches both "4 cups out of 16" and "April 16." A regex can't tell the difference. An LLM can: <em>"is the slash separating cups from a goal, or month from day?"</em></div>
+        <div class="desc"><b>Date collisions.</b> The pattern <span style="font-family:var(--mono); font-style:normal;">\d+/16</span> matches both "4 cups out of 16" and "April 16." A regex can't tell the difference. An LLM can.</div>
       </div>
       <div class="fp-row">
         <div class="who">FP CLASS B<br>1 occurrence</div>
-        <div class="desc"><b>Self-quoting corrections.</b> When the agent corrects a phantom (the v50 defense quotes the suspect text back to the user before disowning it), the regex flags the correction itself. The fix isn't a tighter regex. It's: <em>"is the suspect span a quoted historical claim or a fresh assertion?"</em></div>
+        <div class="desc"><b>Self-quoting corrections.</b> When the agent corrects a phantom (the v50 defense quotes the suspect text back before disowning it), the regex flags the correction itself. A tighter regex doesn't fix this. The right question is whether the suspect span is a quoted historical claim or a fresh assertion.</div>
       </div>
       <div class="fp-row">
         <div class="who">FP CLASS C<br>1 occurrence</div>
-        <div class="desc"><b>Classifier context loss.</b> The pattern matched "added 3" without "/16," so the substring classifier defaulted to diet. The water tool actually fired. The matched <em>substring</em> said one thing, the surrounding response said another. An LLM-judge reads both.</div>
+        <div class="desc"><b>Classifier context loss.</b> The pattern matched "added 3" without "/16," so the substring classifier defaulted to diet. The water tool actually fired. The matched substring said one thing, the surrounding response said another. An LLM-judge reads both.</div>
       </div>
     </div>
 
     <div class="editorial">
-      <p>Every one of these false-positive classes asks the same kind of question. <em>Is this assistant content actually claiming an action right now?</em> The hypothesis was: an LLM-as-judge handles this natively where a regex can't.</p>
-      <p style="margin-top: 16px;"><b>So I tested it.</b> Ran the full LLM-judge <code>ClassificationEvaluator</code> against the eleven flagged historical turns plus five known-grounded references. Two judges, two ends of the cost/quality spectrum: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Compared each LLM verdict to the regex verdict to ground truth, and ran Phoenix's existing <code>ToolSelectionEvaluator</code> on the same set as a baseline. Real LLM calls, real verdicts:</p>
+      <p>All three false-positive classes ask the same kind of question: is this assistant content actually claiming an action right now? Hypothesis: an LLM-as-judge handles this natively where a regex can't.</p>
+      <p style="margin-top: 16px;">So I tested it. Ran the LLM-judge <code>ClassificationEvaluator</code> against the eleven flagged turns plus five known-grounded references. Two judges spanning the cost/quality range: <strong>Claude Sonnet 4.6</strong> and <strong>Claude Haiku 4.5</strong>. Compared each LLM verdict against the regex and against ground truth, and ran Phoenix's <code>ToolSelectionEvaluator</code> as a baseline. Real LLM calls, real verdicts:</p>
     </div>
 
     <div class="audit-frame" style="margin-top: 8px;">
@@ -1009,14 +1009,14 @@
     </div>
 
     <div class="editorial" style="margin-top: 24px;">
-      <p><b>The headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to regex. Same prompt, same data, different judge. Sonnet correctly handles the boundary case regex couldn't (#29's "4/16" date collision); Haiku gets there on date collisions but false-negatives on "goal hit" turns where the tool fired but the LLM can't see the resulting state from the tool's name alone. <strong>Model capability matters at the eval layer.</strong> The cost difference between Sonnet and Haiku is real, but so is the accuracy gap on a primitive doing nuanced action-vs-recall classification.</p>
-      <p><b>The named failure mode for Haiku in this prompt:</b> it sees tool <em>names</em> but not tool <em>results</em>. It can verify "a tool was called" but not "the tool's effect carried the user to the asserted state." Adding <code>tool_result</code> to the prompt's <code>tool_spans</code> input would close the gap for the smaller model. Day-two refinement, named honestly, not papered over. Sonnet handled this case without the additional context.</p>
-      <p><b>Phoenix's existing <code>ToolSelectionEvaluator</code> hit 12/16.</b> It catches the obvious phantoms (action claimed, no tool fired), but misses two structural patterns this primitive needs to handle: (1) state-claim on ambiguous user input (turn #156: Bryan said "Yep," Luke said "day 8 at 75g"). ToolSelection labelled "correct" because no tool was needed for "Yep," missing that the agent's <em>output</em> claimed state without grounding; (2) self-corrections (turn #194) labelled "incorrect" instead of recognizing the v50 layered defense. The 2x2 cell from section 02 isn't covered by an existing eval; ToolSelection covers part of it.</p>
-      <p>So the production design isn't "LLM-judge replaces regex." It's: <em>regex as the cheap pre-filter for high-confidence patterns; Sonnet-class LLM-judge as the boundary-case adjudicator; ToolSelection running in parallel for the wrong-tool dimension; the four false-positive classes as the boundary-case test bank.</em> Four signals, one failure-mode cell, all drawn from validation rather than belief.</p>
-      <p><b>The build-vs-buy check, made cheap by Phoenix Experiments.</b> Two more runs after the initial four: an Opus 4.7 swap on the v2 prompt (<b>14/16 again</b>, but the errors flip to false-negatives, which are more expensive than Sonnet's false-positives, so cost-of-error keeps Sonnet primary), and Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset (<b>9/16, a 36-point drop</b>). The built-in catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. The reason it falls short isn't the model, it's structural: a generic faithfulness check has none of the trace-aware boundary scaffolding (date-numeric collisions, self-corrections, quoted historical claims) the failure-mode taxonomy in section 02 demands. The specialized evaluator beats the generic one because the problem demanded specialization, with a caveat: I tuned my prompt against this dataset and didn't re-tune Faithfulness's, so the 36-point gap is "specialized vs generic on a specialized problem," not a tuned-vs-tuned head-to-head.</p>
-      <p><b>And what the regex on its own structurally couldn't see.</b> The audit reads from the agent's <code>conversation_log</code> SQLite table. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, 100% tagged <code>source='dm'</code>. The agent's group chat and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 production traces. The SQL audit pipeline wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. <em>The eval primitive is the small win. Coverage of surfaces the SQL log can't see is the bigger one. The agent's main branch picked up the SQL-side fix the same evening at <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>.</em></p>
-      <p><b>What the eval landscape currently ships.</b> LangSmith ships a built-in correctness/relevance evaluator suite and supports custom LLM-judges; nothing trace-aware in their library reads "claimed action vs observed tool span." Langfuse ships dataset-experiment compare and a custom-eval runner with a similar gap. Braintrust ships strong eval-as-code with online + offline scoring, also generic. Weave (W&B) ships a hallucination/faithfulness focus that has the same shape as the Phoenix built-in I tested above (catches phantoms, false-flags grounded). Tool Bypass isn't a category nobody has thought about; it's a category the trace-aware evaluators in the market underserve because it requires composing the assistant turn's claim against the same trace's tool spans, plus boundary-case scaffolding. Phoenix already has the trace context and the evaluator runtime to do this cleanly. Whoever ships a first-class trace-aware action-grounding eval in their stock library wins the talking point with customers shipping action-taking agents in regulated workflows.</p>
-      <p><b>Who feels this most.</b> Tool bypass costs are highest where the agent's claim of a state change has downstream consequences that are expensive to undo: finance ops (an agent that says "I filed the expense" but didn't), healthcare workflow agents (an agent that says "I logged the visit note" but didn't), customer-success agents (an agent that says "I refunded the order" but didn't), compliance/audit copilots, and any agent driving a CRM or ticketing system through tool calls. For Arize, the wedge customer is the team that's already shipped an action-taking agent into a high-trust workflow and is starting to feel "we don't know what fraction of agent claims are actually grounded." For Bryan-as-builder this is a safety-rail eval; for an Arize customer it's a compliance and trust-loss instrument.</p>
+      <p><b>Headline:</b> Sonnet 4.6 beats regex. Haiku 4.5 loses to regex. Same prompt, same data, different judge. Sonnet handles the boundary case regex can't (#29's "4/16" date collision). Haiku handles date collisions but false-negatives on "goal hit" turns where the tool fired but Haiku can't bridge from the tool name to the resulting state. Model capability matters at the eval layer. The cost difference between Sonnet and Haiku is real, and so is the accuracy gap on action-vs-recall classification.</p>
+      <p><b>Haiku's named failure mode in this prompt:</b> it sees tool <em>names</em>, not tool <em>results</em>. It can verify "a tool was called" but not "the tool's effect carried the user to the asserted state." Adding <code>tool_result</code> to the prompt's <code>tool_spans</code> input closes the gap for the smaller model. Day-two refinement, named instead of papered over. Sonnet handled this without the extra context.</p>
+      <p><b><code>ToolSelectionEvaluator</code> hit 12/16.</b> It catches obvious phantoms (action claimed, no tool fired) but misses two structural patterns Tool Bypass needs: (1) state-claims on ambiguous user input (turn #156: I said "Yep," Luke said "day 8 at 75g"). ToolSelection labelled this "correct" because no tool was needed for "Yep," missing that the agent's <em>output</em> claimed state without grounding. (2) Self-corrections (turn #194) labelled "incorrect" instead of recognizing the v50 defense. The 2x2 cell from section 02 isn't covered; ToolSelection covers part of it.</p>
+      <p>So the deployment design isn't "LLM-judge replaces regex." It's regex as the cheap pre-filter, Sonnet-class LLM-judge as the boundary-case adjudicator, ToolSelection in parallel for the wrong-tool dimension, the four false-positive classes as the boundary-case test bank. Four signals, one failure-mode cell, drawn from validation rather than belief.</p>
+      <p><b>The build-vs-buy check, made cheap by Phoenix Experiments.</b> Two more runs after the initial four: Opus 4.7 on the v2 prompt (<b>14/16 again</b>, but errors flip to false-negatives, which cost more than Sonnet's false-positives, so cost-of-error keeps Sonnet primary), and Phoenix's built-in <code>FaithfulnessEvaluator</code> on the same dataset (<b>9/16, a 36-point drop</b>). Faithfulness catches all 7 phantoms but false-flags 7 of 9 grounded responses as unfaithful. The shortfall isn't the model, it's structural: a generic faithfulness check has none of the trace-aware boundary scaffolding (date-numeric collisions, self-corrections, quoted historical claims) the section-02 taxonomy demands. Caveat: I tuned my prompt against this dataset and didn't re-tune Faithfulness's, so the 36-point gap is "specialized vs generic on a specialized problem," not a tuned head-to-head.</p>
+      <p><b>What the regex on its own structurally couldn't see.</b> The audit reads from <code>conversation_log</code>. With Phoenix sitting next to the SQL pipeline this evening, I confirmed: 175 historical rows, all tagged <code>source='dm'</code>. The agent's group chat and its scheduled jobs (morning card, AI sweep) write nothing to that table. In the first thirty minutes after Phoenix deployed, the workspace ingested 38 traces. The SQL audit wrote zero new rows. The 169-turn audit was confidently scanning a third of the agent's actual LLM activity. The eval primitive is the small win; coverage of surfaces SQL can't see is the bigger one. Main picked up the SQL-side fix the same evening at <a href="https://github.com/BSPLAZA/75-hard/commit/722df96"><code>722df96</code></a>.</p>
+      <p><b>What the eval landscape currently ships.</b> LangSmith ships a correctness/relevance suite and supports custom LLM-judges; nothing trace-aware in their library reads "claimed action vs observed tool span." Langfuse ships dataset-experiment compare and a custom-eval runner with the same gap. Braintrust ships strong eval-as-code with online and offline scoring, also generic. Weave (W&B) ships a hallucination/faithfulness focus shaped like the Phoenix built-in I tested above (catches phantoms, false-flags grounded). Tool Bypass isn't a category nobody has thought about; it's one the trace-aware evaluators in the market underserve, because catching it cleanly requires composing the assistant turn against the same trace's tool spans, plus the boundary-case scaffolding. Phoenix already has the trace context and the evaluator runtime to do this. Whoever ships a first-class trace-aware action-grounding eval in their stock library owns the talking point with teams shipping action-taking agents in regulated workflows.</p>
+      <p><b>Who feels this most.</b> Tool bypass costs are highest where the agent's claim of a state change has downstream consequences that are expensive to undo: finance ops (an agent that says "I filed the expense" but didn't), healthcare workflow agents ("I logged the visit note"), customer-success agents ("I refunded the order"), compliance copilots, and any agent driving a CRM or ticketing system through tool calls. For Arize, the wedge customer is the team that's already shipped an action-taking agent into a high-trust workflow and is starting to feel "we don't know what fraction of our agent's claims are actually grounded." For me as a builder this is a safety rail. For an Arize customer it's a compliance and trust-loss instrument.</p>
     </div>
   </div>
 </section>
@@ -1028,7 +1028,7 @@
     <h2>One file, one registration, one test fixture.</h2>
 
     <div class="editorial">
-      <p>Phoenix's eval module is well-bounded. The new file slots in alongside the existing evaluators without touching anything else. Below is the relevant subtree of <span style="font-family: var(--mono);">arize-ai/phoenix</span> on main, with the proposed addition marked:</p>
+      <p>Phoenix's eval module is well-bounded. The new file slots in alongside the existing evaluators without touching anything else. The relevant subtree of <span style="font-family: var(--mono);">arize-ai/phoenix</span> on main, with the addition marked:</p>
     </div>
 
     <div class="arch">
@@ -1052,7 +1052,7 @@
     </div>
 
     <div class="editorial">
-      <p>One YAML, one 32-line evaluator, two small additions to existing files, one auto-generated config. The test pattern uses Phoenix's existing <span style="font-family: var(--mono);">MockLLM</span> with no API and no network. Three reference cases get added to <span style="font-family: var(--mono);">ALL_EVALUATORS</span>: a clean trace (PASS), Cam's phantom trace (FAIL), and a 4/16-date-collision FP from the audit. <em>The fork is wired exactly this way.</em></p>
+      <p>One YAML, one 32-line evaluator, two small additions to existing files, one auto-generated config. The test pattern uses Phoenix's <span style="font-family: var(--mono);">MockLLM</span>, no API, no network. Three reference cases land in <span style="font-family: var(--mono);">ALL_EVALUATORS</span>: a clean trace (PASS), Cam's phantom trace (FAIL), and a 4/16-date-collision FP from the audit. The fork is wired exactly this way.</p>
     </div>
   </div>
 </section>
@@ -1064,26 +1064,26 @@
     <h2>I don't know yet whether this belongs in Alyx or AX. <em>Here's how I'd find out.</em></h2>
 
     <div class="editorial">
-      <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals yet, so committing to a runtime ship in 30 days would be a guess. The discipline I want to model: name the decision, name the inputs needed to make it, name the date. Don't fake the commitment.</p>
+      <p>The honest answer to "where does this primitive live" is two scoping conversations away. Tool bypass at batch is clearly a Phoenix story; the eval is already running. Tool bypass at runtime is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs), but I haven't seen the Alyx response-path internals, so committing to a runtime ship in 30 days would be a guess. Name the decision, name the inputs, name the date. Don't fake the commitment.</p>
     </div>
 
     <div class="roadmap">
       <div class="rm-row committed">
         <div class="when">30 days</div>
         <div class="what">
-          <b>Decide: Alyx runtime gate, or AX batch metric, or both?</b> Two weeks with the Alyx team and the AX product owner to scope: latency budget for a single LLM-judge call in the Alyx response path, routing decision (every assertion, sampled, or only on assertions matching a pre-filter), and the AX-customer cohort that already cares enough to instrument for this. By day 14: a written decision, a cost model, and a one-page spec. The eval itself ports cleanly from the Phoenix fork either way.
+          <b>Decide: Alyx runtime gate, AX batch metric, or both?</b> Two weeks with the Alyx team and the AX product owner to scope: latency budget for a single LLM-judge call in the Alyx response path, routing decision (every assertion, sampled, or only on assertions matching a pre-filter), and the AX-customer cohort that already cares enough to instrument. By day 14: a written decision, a cost model, a one-page spec. The eval itself ports cleanly from the Phoenix fork either way.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">60 days</div>
         <div class="what">
-          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). It says "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
+          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). Says "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">90 days</div>
         <div class="what">
-          <b>Eval-as-gate, composing across pillars.</b> Tool bypass plus handoff coverage plus memory pressure, surfaced as a pre-deploy gate in CI/CD. The three primitives should compose; right now they don't share a substrate. Composing them is the contribution. The individual evals are not.
+          <b>Eval-as-gate, composing across pillars.</b> Tool bypass plus handoff coverage plus memory pressure, surfaced as a pre-deploy gate in CI/CD. The three primitives should compose; right now they don't share a substrate. Composing them is the contribution, not the individual evals.
         </div>
       </div>
     </div>
