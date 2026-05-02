@@ -412,7 +412,6 @@
       <div class="id">Bryan Plaza  ·  Take-home for Arize AI</div>
       <div class="meta-line"></div>
       <nav class="nav">
-        <a href="index.html">/</a>
         <a href="agent.html" class="cur">/agent</a>
         <a href="feedback.html">/feedback</a>
         <a href="proposal.html">/proposal</a>
@@ -567,7 +566,7 @@
         <span class="filename">01-phoenix-trace-list.png</span>
         <span>the luke-75-hard project, with traces from real production conversations</span>
       </div>
-      <img src="../agent/screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/01-phoenix-trace-list.png" alt="Phoenix trace list view of luke-75-hard project" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <div class="ss">
@@ -575,7 +574,7 @@
         <span class="filename">04-span-tree.png</span>
         <span>trace detail panel: span tree, status, cost, latency, and the empty-state annotation panel</span>
       </div>
-      <img src="../agent/screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/04-span-tree.png" alt="Phoenix trace detail with span tree" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I ran the evaluator against those traces.</h3>
@@ -592,7 +591,7 @@
         <span class="filename">05-tool-bypass-eval-running.png</span>
         <span>Phoenix project header with <code>tool_bypass μ 1.00</code> alongside Total Cost and Latency. Per-row annotations populate the Annotations column.</span>
       </div>
-      <img src="../agent/screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/05-tool-bypass-eval-running.png" alt="Phoenix UI showing tool_bypass eval annotations and project-level mean" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Then I made the validation set durable as a Phoenix Dataset, and the run reproducible as a Phoenix Experiment.</h3>
@@ -609,7 +608,7 @@
         <span class="filename">06-phoenix-experiment.png</span>
         <span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: the <code>tool_bypass_sonnet_4_6</code> run is selected, with the matching-ground-truth evaluator scored 1.00 on the visible row, AVG 3.8s judge latency, and the dataset's input/reference output columns alongside the experiment's output.</span>
       </div>
-      <img src="../agent/screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI showing tool_bypass_sonnet_4_6 run against the tool_bypass_validation_v1 dataset" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
   </div>
@@ -650,7 +649,7 @@
         <span class="filename">11-three-experiment-metrics.png</span>
         <span>Phoenix Experiments Metrics view across all three runs (v1-Sonnet, v2-Sonnet, v3-Opus): <code>matches_ground_truth</code> = 0.87 across the board (14/16), with Opus 4.7 running <strong>26% faster</strong> than Sonnet 4.6 at the same accuracy. The "no improvement" finding is one glance from the platform; the cost-of-error breakdown is one click into the row-level Compare view.</span>
       </div>
-      <img src="../agent/screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/11-three-experiment-metrics.png" alt="Phoenix Experiments metrics summary across three runs" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Why a custom evaluator and not the built-in.</h3>
@@ -666,7 +665,7 @@
         <span class="filename">14-four-evaluator-metrics.png</span>
         <span>Phoenix Metrics view across four experiments: <code>matches_ground_truth</code> = 0.87 for v1-Sonnet, v2-Sonnet, v3-Opus (all 14/16), and <strong>0.56 (down 36%) for the built-in <code>FaithfulnessEvaluator</code></strong> (9/16).</span>
       </div>
-      <img src="../agent/screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/14-four-evaluator-metrics.png" alt="Phoenix Metrics view comparing four experiments" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What this dataset can and can't tell us.</h3>
@@ -793,7 +792,7 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">06-phoenix-experiment.png</span><span>Phoenix Experiments grid for <code>tool_bypass_validation_v1</code>: input, reference output, Experiment output side by side, with <code>matches_ground_truth</code> scored per row.</span></div>
-      <img src="../agent/screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/06-phoenix-experiment.png" alt="Phoenix Experiment UI" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A2 · Prompt registry (v1 + v2 versioning)</h3>
@@ -802,7 +801,7 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">09-phoenix-prompt-versioning.png</span><span>The <code>tool-bypass-judge</code> prompt in the Phoenix registry. Two versions visible. Description, metadata, prompt template body.</span></div>
-      <img src="../agent/screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/09-phoenix-prompt-versioning.png" alt="Phoenix Prompt registry detail" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A3 · Annotation Configs (and a product gap I surfaced)</h3>
@@ -811,7 +810,7 @@
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">08-trace-detail-annotation.png</span><span>Trace detail panel: <strong>Annotation Summary</strong> shows <code>tool_bypass μ 1.00</code> from the API push (working). <strong>Edit Annotations</strong> panel below reads "No annotation configurations for this project" (the gap).</span></div>
-      <img src="../agent/screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with annotation summary populated and edit annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/08-trace-detail-annotation.png" alt="Phoenix trace detail with annotation summary populated and edit annotations empty" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A4 · Sessions instrumentation (the day-2 patch for Luke)</h3>
@@ -826,7 +825,7 @@ async def chat_with_luke(message, db, user_id, ...):
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">12-phoenix-sessions-list.png</span><span>The Sessions tab of <code>luke-sessions-demo</code> populated by <code>using_session</code>: three reconstructed user arcs, each with first input, last output, p50 latency, and annotations.</span></div>
-      <img src="../agent/screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/12-phoenix-sessions-list.png" alt="Phoenix Sessions list view" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">A5 · Non-LLM spans + the saved-filter URL</h3>
@@ -835,7 +834,7 @@ async def chat_with_luke(message, db, user_id, ...):
     </div>
     <div class="ss">
       <div class="caption"><span class="filename">15-non-llm-audit-trace.png</span><span>The audit pipeline as a Phoenix trace: outer chain span with three child tool spans, each carrying custom attributes. No LLM call in the trace.</span></div>
-      <img src="../agent/screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
+      <img src="screenshots/15-non-llm-audit-trace.png" alt="Phoenix trace detail showing the audit pipeline as non-LLM spans" style="display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px;" onerror="this.outerHTML='<div class=\'placeholder\'>[ screenshot pending capture ]</div>'">
     </div>
   </div>
 </section>
