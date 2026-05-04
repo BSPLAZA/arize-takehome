@@ -401,10 +401,528 @@
   footer .links { text-align: right; line-height: 1.9; }
   footer .links a { display: block; }
 
+  /* ─── Diagrams ───────────────────────────────────────────── */
+
+  .diagram {
+    margin: 36px 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px 28px;
+    position: relative;
+  }
+  .diagram.dim { background: var(--paper-2); }
+  .dgm-caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .dgm-foot {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 18px;
+    letter-spacing: 0.02em;
+  }
+  .dgm-foot .accent { color: var(--accent); }
+
+  /* Hover popover used across diagrams */
+  .tip-host { position: relative; }
+  .tip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 16px;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    line-height: 1.5;
+    border-radius: 4px;
+    width: 240px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+    z-index: 20;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .tip b { color: var(--accent-soft); font-weight: 600; }
+  .tip::after {
+    content: "";
+    position: absolute;
+    top: 100%; left: 50%;
+    margin-left: -6px;
+    border: 6px solid transparent;
+    border-top-color: var(--ink);
+  }
+  .tip-host:hover > .tip,
+  .tip-host:focus-within > .tip { opacity: 1; }
+
+  /* 75 Hard explainer */
+  .group-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 28px;
+    margin: 8px 0 28px;
+  }
+  .person {
+    cursor: help;
+    transition: transform 200ms ease;
+    text-align: center;
+  }
+  .person:hover { transform: translateY(-4px); }
+  .person svg { width: 52px; height: 76px; display: block; margin: 0 auto; }
+  .person .pl {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+  }
+  .group-plus {
+    font-family: var(--serif);
+    font-size: 28px;
+    color: var(--muted);
+    align-self: center;
+    padding-bottom: 18px;
+    font-variation-settings: "opsz" 28;
+  }
+
+  .task-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 16px 0;
+  }
+  .task-card {
+    background: var(--paper);
+    padding: 22px 14px 18px;
+    text-align: center;
+    cursor: help;
+    transition: background 160ms ease;
+    position: relative;
+  }
+  .task-card:hover { background: var(--paper-2); }
+  .task-card svg {
+    width: 32px; height: 32px;
+    margin: 0 auto 12px;
+    display: block;
+    stroke: var(--accent);
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .task-card .tn {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .task-card .td {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .failure-banner {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 20px;
+    font-family: var(--serif);
+    font-size: 16.5px;
+    color: var(--ink);
+    margin-top: 22px;
+    font-variation-settings: "opsz" 16;
+  }
+  .failure-banner b { color: var(--accent); font-weight: 600; }
+
+  /* Pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    margin: 28px 0 36px;
+  }
+  .pipe-step {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 18px 12px 16px;
+    position: relative;
+    cursor: help;
+    transition: background 160ms ease, border-color 160ms ease, z-index 0s 200ms;
+  }
+  .pipe-step:hover {
+    background: var(--paper-2);
+    border-color: var(--ink);
+    z-index: 5;
+    transition: background 160ms ease, border-color 160ms ease;
+  }
+  .pipe-step + .pipe-step { border-left: none; }
+  .pipe-step::before {
+    content: "";
+    position: absolute;
+    right: -6px; top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 10px; height: 10px;
+    border-top: 1px solid var(--line-2);
+    border-right: 1px solid var(--line-2);
+    background: var(--paper);
+    z-index: 3;
+  }
+  .pipe-step:last-child::before { display: none; }
+  .pipe-step .pn {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .pipe-step .pname {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .pipe-step .pd {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .pipe-step.span-yes {
+    border-top: 3px solid var(--accent);
+    padding-top: 16px;
+  }
+  .pipe-span-bar {
+    margin-top: -32px;
+    padding: 6px 0 14px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Tool clusters */
+  .tool-clusters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(208px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 24px 0;
+  }
+  .tc {
+    background: var(--paper);
+    padding: 18px 22px 16px;
+    cursor: pointer;
+    transition: background 200ms ease;
+  }
+  .tc:hover { background: var(--paper-2); }
+  .tc .tcn {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .tc .tcc {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    font-variation-settings: "opsz" 30;
+    letter-spacing: -0.01em;
+  }
+  .tc .tcc small {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 6px;
+    letter-spacing: 0;
+  }
+  .tc .tct {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.6;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 320ms ease;
+  }
+  .tc:hover .tct { max-height: 240px; }
+  .tc .tct b { color: var(--ink-2); font-weight: 500; }
+
+  /* Day-in-Luke timeline */
+  .timeline-wrap {
+    margin: 24px 0 8px;
+    padding: 30px 0 24px;
+    position: relative;
+  }
+  .timeline-axis {
+    position: absolute;
+    top: 70px;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--line-2);
+  }
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    position: relative;
+  }
+  .te {
+    text-align: center;
+    position: relative;
+    cursor: help;
+    padding: 0 4px;
+  }
+  .te .tt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    margin-bottom: 18px;
+    line-height: 1.3;
+    min-height: 28px;
+  }
+  .te .td-dot {
+    width: 14px; height: 14px;
+    background: var(--paper);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    transition: background 160ms ease, transform 160ms ease;
+  }
+  .te:hover .td-dot {
+    background: var(--accent);
+    transform: scale(1.2);
+  }
+  .te .tn {
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--ink);
+    margin-top: 14px;
+    line-height: 1.35;
+    font-variation-settings: "opsz" 13;
+  }
+  .te .tx {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* Span tree */
+  .span-tree {
+    margin: 24px 0;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    padding: 22px 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .span-row {
+    position: relative;
+    padding: 5px 8px;
+    cursor: help;
+    transition: background 140ms ease;
+    border-radius: 3px;
+  }
+  .span-row:hover { background: var(--paper); }
+  .span-row.depth-1 { margin-left: 28px; }
+  .span-row.depth-2 { margin-left: 56px; color: var(--ink-2); }
+  .span-row.depth-2 .sn { font-weight: 400; }
+  .span-row::before {
+    content: "";
+    position: absolute;
+    left: -16px; top: 14px;
+    width: 12px; height: 1px;
+    background: var(--line-2);
+  }
+  .span-row.depth-0::before { display: none; }
+  .span-row .sk {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-right: 12px;
+    display: inline-block;
+    width: 46px;
+    text-transform: uppercase;
+    background: var(--paper);
+    padding: 1px 6px;
+    border-radius: 2px;
+    text-align: center;
+  }
+  .span-row .sn {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .span-row .sd {
+    color: var(--muted);
+    margin-left: 10px;
+    font-size: 11px;
+  }
+
+  /* Bypass comparison */
+  .bypass-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 24px 0 8px;
+  }
+  .bf {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 22px 24px 20px;
+  }
+  .bf h4 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0 0 4px;
+    font-variation-settings: "opsz" 19;
+    letter-spacing: -0.01em;
+  }
+  .bf .bf-tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .bf-step {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    line-height: 1.45;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+    color: var(--ink-2);
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+  }
+  .bf-step:last-of-type { border-bottom: none; }
+  .bf-step b { color: var(--ink); font-weight: 500; }
+  .bf-step .bs-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    padding-top: 4px;
+  }
+  .bf-step.skip { color: var(--muted); }
+  .bf-step.skip b { color: var(--ink-2); }
+  .bf-step.fail b { color: var(--accent); }
+  .bf-vis {
+    margin-top: 14px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--paper-3);
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+    border-left: 3px solid var(--good);
+  }
+  .bf.invisible .bf-vis {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+  }
+
+  /* Metrics table — used in section 04 */
+  .metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    border: 1px solid var(--line);
+  }
+  .metrics-table th {
+    background: var(--paper-2);
+    padding: 12px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+  .metrics-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  .metrics-table tr:last-child td { border-bottom: none; }
+  .metrics-table td code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink);
+    background: transparent;
+    padding: 0;
+  }
+  .metrics-table td .sub {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  .metrics-table td.ok {
+    color: var(--good);
+    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+  .metrics-table td.warn {
+    color: var(--accent);
+    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
   @media (max-width: 800px) {
     .container { padding: 0 24px; }
     .hero h1 { font-size: 48px; }
     .repo-card { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+    .pipe-step::before { display: none; }
+    .pipe-step + .pipe-step { border-left: 1px solid var(--line); border-top: none; }
+    .timeline { grid-template-columns: repeat(4, 1fr); row-gap: 32px; }
+    .bypass-pair { grid-template-columns: 1fr; }
+    .group-row { gap: 14px; flex-wrap: wrap; }
+    .task-row { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -445,12 +963,82 @@
     <h2>Five users, twenty-seven tools, one daily card.</h2>
 
     <div class="editorial">
-      <ul>
-        <li>75 Hard for a closed Telegram group of five friends plus the bot</li>
-        <li>Five daily tasks per user: two workouts, water, diet, reading, photo</li>
-        <li>One DM agent per user (in my voice), one shared group chat for cards and milestones</li>
-        <li>Backfills, undo, food vision, timelapses, nudges — sometimes claims actions it never took</li>
-      </ul>
+      <p>75 Hard is a 75-day habit challenge. Closed Telegram group of five friends plus Luke. Each person hits five daily tasks. Miss any one, the day is failed and the count restarts.</p>
+    </div>
+
+    <div class="diagram">
+      <div class="dgm-caption">the group · five friends + one bot</div>
+      <div class="group-row">
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><circle class="head" cx="16" cy="10" r="7" fill="#c14613"/><path class="body" d="M3 48 L3 26 Q3 18 16 18 Q29 18 29 26 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Bryan</div>
+          <div class="tip">Day-21 streak, 41 turns. Phantom case the v50 fix closed.</div>
+        </div>
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><circle class="head" cx="16" cy="10" r="7" fill="#4a5d3a"/><path class="body" d="M3 48 L3 26 Q3 18 16 18 Q29 18 29 26 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Kat</div>
+          <div class="tip">Most active user, 50 turns over the 30-day window. Caught a 16/16 phantom.</div>
+        </div>
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><circle class="head" cx="16" cy="10" r="7" fill="#8b3210"/><path class="body" d="M3 48 L3 26 Q3 18 16 18 Q29 18 29 26 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Gaurav</div>
+          <div class="tip">Logged 45 turns. Stress-tested the date-vs-water-cup regex collision.</div>
+        </div>
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><circle class="head" cx="16" cy="10" r="7" fill="#6f6960"/><path class="body" d="M3 48 L3 26 Q3 18 16 18 Q29 18 29 26 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Cam</div>
+          <div class="tip">24 turns. Cross-day water phantom on day 13.</div>
+        </div>
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><circle class="head" cx="16" cy="10" r="7" fill="#a06a14"/><path class="body" d="M3 48 L3 26 Q3 18 16 18 Q29 18 29 26 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Yumna</div>
+          <div class="tip">9 turns. Joined late.</div>
+        </div>
+        <div class="group-plus">+</div>
+        <div class="person tip-host">
+          <svg viewBox="0 0 32 48"><rect x="6" y="4" width="20" height="16" rx="3" fill="#c14613" stroke="#8b3210" stroke-width="0.8"/><circle cx="11.5" cy="11" r="1.6" fill="#fff"/><circle cx="20.5" cy="11" r="1.6" fill="#fff"/><line x1="13" y1="16" x2="19" y2="16" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M3 48 L3 30 Q3 22 16 22 Q29 22 29 30 L29 48 Z" fill="#2e2620"/></svg>
+          <div class="pl">Luke</div>
+          <div class="tip">The bot. One DM agent per user, one shared group chat for cards and milestones.</div>
+        </div>
+      </div>
+
+      <div class="dgm-caption" style="margin-top: 16px;">the daily five · per user, every day</div>
+      <div class="task-row">
+        <div class="task-card tip-host">
+          <svg viewBox="0 0 36 36"><circle cx="8" cy="18" r="3.2"/><rect x="10" y="16" width="6" height="4" rx="0.6"/><rect x="20" y="16" width="6" height="4" rx="0.6"/><circle cx="28" cy="18" r="3.2"/><rect x="16" y="17" width="4" height="2"/></svg>
+          <div class="tn">Two workouts</div>
+          <div class="td">45 min · one outdoors</div>
+          <div class="tip">Two 45-minute workouts per day. One must be outdoors regardless of weather. <b>Indoor + outdoor</b>, not two indoors.</div>
+        </div>
+        <div class="task-card tip-host">
+          <svg viewBox="0 0 36 36"><path d="M10 8 L26 8 L24 30 L12 30 Z"/><path d="M11 18 L25 18"/></svg>
+          <div class="tn">A gallon of water</div>
+          <div class="td">16 cups · tracked</div>
+          <div class="tip">One US gallon = 16 cups. Logged via DM ("3 cups"), via the card, or via Luke's water tools. <b>fix_water</b> corrects mistakes.</div>
+        </div>
+        <div class="task-card tip-host">
+          <svg viewBox="0 0 36 36"><circle cx="18" cy="22" r="11"/><circle cx="18" cy="22" r="6"/><line x1="18" y1="3" x2="18" y2="14"/></svg>
+          <div class="tn">Stick to a diet</div>
+          <div class="td">no cheats · no alcohol</div>
+          <div class="tip">User-chosen diet. No cheat meals, no alcohol. Confirmed at end-of-day; <b>log_food</b> tracks meals incrementally so totals catch slips early.</div>
+        </div>
+        <div class="task-card tip-host">
+          <svg viewBox="0 0 36 36"><path d="M5 10 L18 13 L18 30 L5 27 Z"/><path d="M31 10 L18 13 L18 30 L31 27 Z"/></svg>
+          <div class="tn">Read 10 pages</div>
+          <div class="td">non-fiction · self-development</div>
+          <div class="tip">10 pages of non-fiction self-development per day. Audiobooks don't count. <b>set_book</b> declares the current book; <b>finish_book</b> closes it out.</div>
+        </div>
+        <div class="task-card tip-host">
+          <svg viewBox="0 0 36 36"><rect x="4" y="11" width="28" height="20" rx="2"/><circle cx="18" cy="21" r="6"/><path d="M13 11 L15 7 L21 7 L23 11"/></svg>
+          <div class="tn">Daily progress photo</div>
+          <div class="td">required · powers timelapses</div>
+          <div class="tip">One photo per day. Powers the weekly timelapse and before/after rendering. Backfillable until midnight PT next day, then locked.</div>
+        </div>
+      </div>
+
+      <div class="failure-banner">
+        <b>Miss any one task</b>, the day fails. Day count restarts at 1. That's the rule that makes the audit trail matter.
+      </div>
     </div>
 
     <div class="stats">
@@ -487,52 +1075,161 @@
     <h2>Anthropic, Telegram, SQLite, and now Phoenix.</h2>
 
     <div class="editorial">
-      <ul>
-        <li>Telegram → handler → Anthropic (with SQLite history) → tool dispatch → state mutation → card re-render</li>
-        <li>Scheduler fires nudges in user-specific timezones</li>
-        <li><code>openinference-instrumentation-anthropic</code> wraps every LLM call</li>
-        <li>Custom <code>SpanKind.TOOL</code> spans on dispatch with <code>tool.name</code> and <code>tool.parameters</code></li>
-        <li>Traces ship to <a href="https://app.phoenix.arize.com/s/bsplaza/projects">Phoenix Cloud</a></li>
-      </ul>
+      <p>One message in, one card out. Anthropic decides which tool to call. SQLite holds state. The scheduler fires nudges on each user's local clock. Phoenix wraps the LLM call so every span is queryable.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">The twenty-seven tools</h3>
-
-    <div class="tools-grid">
-      <div><div class="name">log_water_dm</div><div class="desc">add cups</div></div>
-      <div><div class="name">fix_water</div><div class="desc">correct water count</div></div>
-      <div><div class="name">log_workout_dm</div><div class="desc">log a workout</div></div>
-      <div><div class="name">undo_workout</div><div class="desc">remove last workout</div></div>
-      <div><div class="name">log_food</div><div class="desc">log a meal</div></div>
-      <div><div class="name">undo_last_food</div><div class="desc">remove last food entry</div></div>
-      <div><div class="name">confirm_diet_dm</div><div class="desc">mark diet day complete</div></div>
-      <div><div class="name">get_diet_progress</div><div class="desc">view today's diet log</div></div>
-      <div><div class="name">log_reading_dm</div><div class="desc">log pages read</div></div>
-      <div><div class="name">set_book</div><div class="desc">declare current book</div></div>
-      <div><div class="name">finish_book</div><div class="desc">mark book finished</div></div>
-      <div><div class="name">log_photo</div><div class="desc">log daily photo</div></div>
-      <div><div class="name">request_backfill_photo</div><div class="desc">backfill yesterday's photo</div></div>
-      <div><div class="name">backfill_task</div><div class="desc">backfill any task</div></div>
-      <div><div class="name">get_my_status</div><div class="desc">today's status card</div></div>
-      <div><div class="name">get_my_status_for_day</div><div class="desc">historical status</div></div>
-      <div><div class="name">get_my_profile</div><div class="desc">user settings</div></div>
-      <div><div class="name">set_user_timezone</div><div class="desc">change timezone</div></div>
-      <div><div class="name">make_timelapse</div><div class="desc">render photo timelapse</div></div>
-      <div><div class="name">show_transformation</div><div class="desc">before/after image</div></div>
-      <div><div class="name">+ 7 more</div><div class="desc">admin and edge cases</div></div>
+    <div class="diagram">
+      <div class="dgm-caption">message handling pipeline · hover any step</div>
+      <div class="pipeline">
+        <div class="pipe-step tip-host">
+          <div class="pn">01</div>
+          <div class="pname">Telegram message</div>
+          <div class="pd">DM or group · text, photo, or button tap</div>
+          <div class="tip">Two surfaces. DMs go to the user's per-user agent (in Bryan's voice). Group messages route to a shared chat agent for cards and milestones.</div>
+        </div>
+        <div class="pipe-step tip-host">
+          <div class="pn">02</div>
+          <div class="pname">Handler</div>
+          <div class="pd">routes by chat type · loads user context</div>
+          <div class="tip">Routes to <b>luke_chat</b> (DMs) or the group handler. Loads conversation history and the active prompt. Short-circuits on filters before any LLM call (this is where Handler Bypass lives).</div>
+        </div>
+        <div class="pipe-step tip-host span-yes">
+          <div class="pn">03</div>
+          <div class="pname">Anthropic SDK</div>
+          <div class="pd">claude-sonnet-4-5 · 27 tools available</div>
+          <div class="tip">Wrapped by <b>openinference-instrumentation-anthropic</b>. Every <code>messages.create</code> call becomes one root LLM span with the full tool catalog, input messages, output messages, and stop_reason as attributes.</div>
+        </div>
+        <div class="pipe-step tip-host span-yes">
+          <div class="pn">04</div>
+          <div class="pname">Tool dispatch</div>
+          <div class="pd">tool_use blocks → Python functions</div>
+          <div class="tip">The model returns zero or more <code>tool_use</code> blocks per turn. Each one routes to a Python function (log_water, log_food, etc). When the model claims an action without a tool_use block, that's Tool Bypass.</div>
+        </div>
+        <div class="pipe-step tip-host">
+          <div class="pn">05</div>
+          <div class="pname">SQLite mutation</div>
+          <div class="pd">tasks · daily_checkins · diet_log</div>
+          <div class="tip">Writes to <b>data/75hard.db</b>. Six tables: users, daily_cards, daily_checkins, diet_log, book_log, tasks. The <b>conversation_log</b> table is the legacy audit substrate Phoenix replaces.</div>
+        </div>
+        <div class="pipe-step tip-host">
+          <div class="pn">06</div>
+          <div class="pname">Card re-render</div>
+          <div class="pd">image render · DM or group reply</div>
+          <div class="tip">Renders the user's daily card image (PIL). Posts to the original chat. Same surface for completion DMs, backfill confirmations, and the morning group card.</div>
+        </div>
+      </div>
+      <div class="pipe-span-bar">↑ phoenix wraps these two steps · one root span per turn</div>
+      <div class="dgm-foot">Scheduler runs alongside (not in this path): morning cards 7am ET, 9pm AI sweeps, 10pm local nudges, midnight PT lock.</div>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 40px 0 12px; color: var(--ink); letter-spacing: -0.012em;">The daily rhythm</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 48px 0 12px; color: var(--ink); letter-spacing: -0.012em;">The twenty-seven tools, by surface</h3>
 
-    <div class="rhythm">
-      <table>
-        <tr><td>7am ET</td><td>Morning card. AI greeting + yesterday recap + bookshelf + today's card with buttons.</td></tr>
-        <tr><td>9am ET</td><td>DM nudge to users with incomplete yesterday tasks.</td></tr>
-        <tr><td>9pm ET</td><td>Daily AI sweep. Posts one notable highlight if the day warrants it. Otherwise stays silent.</td></tr>
-        <tr><td>10pm local</td><td>Same-day DM nudge in each user's timezone (ET, CT, MT, PT supported).</td></tr>
-        <tr><td>midnight PT</td><td>Yesterday locks. No more backfill. (Updated in v51.)</td></tr>
-        <tr><td>8pm ET Sun</td><td>Weekly digest image + AI reflection + transformation DMs.</td></tr>
-      </table>
+    <div class="diagram dim" style="background: var(--paper); padding: 24px;">
+      <div class="dgm-caption">hover any cluster to see its tools</div>
+      <div class="tool-clusters">
+        <div class="tc">
+          <div class="tcn">water</div>
+          <div class="tcc">2 <small>tools</small></div>
+          <div class="tct"><b>log_water_dm</b> · add cups<br><b>fix_water</b> · correct count</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">workouts</div>
+          <div class="tcc">2 <small>tools</small></div>
+          <div class="tct"><b>log_workout_dm</b> · log a workout<br><b>undo_workout</b> · remove last</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">diet</div>
+          <div class="tcc">4 <small>tools</small></div>
+          <div class="tct"><b>log_food</b> · add a meal<br><b>undo_last_food</b> · remove last entry<br><b>confirm_diet_dm</b> · close out the day<br><b>get_diet_progress</b> · today's totals</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">reading</div>
+          <div class="tcc">3 <small>tools</small></div>
+          <div class="tct"><b>log_reading_dm</b> · log pages<br><b>set_book</b> · declare current book<br><b>finish_book</b> · close it out</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">photo &amp; backfill</div>
+          <div class="tcc">3 <small>tools</small></div>
+          <div class="tct"><b>log_photo</b> · daily photo<br><b>request_backfill_photo</b> · yesterday<br><b>backfill_task</b> · any task</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">profile &amp; status</div>
+          <div class="tcc">4 <small>tools</small></div>
+          <div class="tct"><b>get_my_status</b> · today's card<br><b>get_my_status_for_day</b> · historical<br><b>get_my_profile</b> · user settings<br><b>set_user_timezone</b> · timezone change</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">media</div>
+          <div class="tcc">2 <small>tools</small></div>
+          <div class="tct"><b>make_timelapse</b> · photo timelapse<br><b>show_transformation</b> · before / after</div>
+        </div>
+        <div class="tc">
+          <div class="tcn">admin &amp; edges</div>
+          <div class="tcc">7 <small>tools</small></div>
+          <div class="tct">Admin commands, edge-case helpers, and operator-only routes. Closed surface (only Bryan reaches them).</div>
+        </div>
+      </div>
+      <div class="dgm-foot">All twenty-seven registered in <code style="font-family: var(--mono); font-size: 11px; background: var(--paper-3); padding: 1px 5px;">bot/utils/luke_chat.py</code>. Most-used in production: <span class="accent">log_food (69), get_my_status (19), backfill (23)</span>.</div>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 48px 0 12px; color: var(--ink); letter-spacing: -0.012em;">A day in Luke</h3>
+
+    <div class="diagram">
+      <div class="dgm-caption">scheduler events · hover for what each does</div>
+      <div class="timeline-wrap">
+        <div class="timeline-axis"></div>
+        <div class="timeline">
+          <div class="te tip-host">
+            <div class="tt">7:00 ET</div>
+            <div class="td-dot"></div>
+            <div class="tn">Morning card</div>
+            <div class="tx">posted to group</div>
+            <div class="tip">AI greeting + yesterday's recap + bookshelf summary + today's card image with task buttons. Posted once to the group chat.</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">9:00 ET</div>
+            <div class="td-dot"></div>
+            <div class="tn">Yesterday nudge</div>
+            <div class="tx">DM users with gaps</div>
+            <div class="tip">Per-user DM to anyone with incomplete yesterday tasks. Skipped if user is already complete or already nudged.</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">throughout</div>
+            <div class="td-dot"></div>
+            <div class="tn">Users log</div>
+            <div class="tx">water · workouts · food · reading</div>
+            <div class="tip">Users DM Luke or tap card buttons. Each message → handler → Anthropic → tool dispatch. One Phoenix trace per LLM turn.</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">21:00 ET</div>
+            <div class="td-dot"></div>
+            <div class="tn">AI sweep</div>
+            <div class="tx">posts a highlight or stays silent</div>
+            <div class="tip">Daily reflection. Posts one notable moment from the day if warranted. Stays silent on quiet days. The "spicy moment" job.</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">22:00 local</div>
+            <div class="td-dot"></div>
+            <div class="tn">Local nudge</div>
+            <div class="tx">last-call DM</div>
+            <div class="tip">Per-user DM in each timezone (ET / CT / MT / PT). Last reminder before midnight PT lock. Skipped if today is complete.</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">00:00 PT</div>
+            <div class="td-dot"></div>
+            <div class="tn">Yesterday locks</div>
+            <div class="tx">no more backfill</div>
+            <div class="tip">Hard cutoff. After this point, yesterday is closed regardless of user timezone. Backfill tools refuse to write to locked days. (Shipped in v51.)</div>
+          </div>
+          <div class="te tip-host">
+            <div class="tt">Sun 20:00 ET</div>
+            <div class="td-dot"></div>
+            <div class="tn">Weekly digest</div>
+            <div class="tx">image + AI reflection</div>
+            <div class="tip">Weekly digest image, AI-generated reflection on the past seven days, transformation DMs to anyone with enough photos for a comparison.</div>
+          </div>
+        </div>
+      </div>
+      <div class="dgm-foot">When a user misses a task, the day fails. Luke does not reset their count automatically; the user logs the failure or skips the next morning's card.</div>
     </div>
   </div>
 </section>
@@ -544,22 +1241,45 @@
     <h2>From conversation log to traces, in one afternoon.</h2>
 
     <div class="editorial">
-      <ul>
-        <li>Before: SQLite <code>conversation_log</code> table, regex audit script</li>
-        <li>After: OTLP traces to Phoenix Cloud — tool catalog, <code>tool_use</code> blocks, <code>stop_reason</code></li>
-        <li>Same data shape, queryable surface, ready for the Tool Bypass eval to consume</li>
-      </ul>
+      <p>SQLite was fine for five users. The <code>conversation_log</code> table plus a regex audit script caught most of what mattered. The problem was scale and coverage: 100% of 175 logged rows were DMs, zero scheduled emissions, zero group chats. Phoenix saw 38 traces in the same window the audit script saw zero. The pipeline was scanning a third of the surface and didn't know it.</p>
+      <p>Phoenix earns its place when the surface gets too wide for a regex to keep up. For Luke at five users, that point came as soon as we wired in scheduled jobs. For an agent at fifty users, or one hundred, the gap between "I have a log" and "I can ask the log questions" is the whole product.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Running the eval against the traces.</h3>
+    <div class="diagram">
+      <div class="dgm-caption">what one trace looks like · OpenInference Anthropic instrumentor</div>
+      <div class="span-tree">
+        <div class="span-row depth-0 tip-host">
+          <span class="sk">LLM</span><span class="sn">messages.create</span><span class="sd">claude-sonnet-4-5 · root span per turn</span>
+          <div class="tip">One root LLM span per Anthropic call. The Anthropic instrumentor is monkey-patched onto the SDK, so all five construction sites in Luke get instrumented automatically. <b>No per-callsite wiring.</b></div>
+        </div>
+        <div class="span-row depth-1 tip-host">
+          <span class="sk">attr</span><span class="sn">llm.input_messages</span><span class="sd">user turn + 3 prior turns</span>
+          <div class="tip">User text plus conversation history loaded by the handler. Phoenix renders these as a structured chat view in the UI.</div>
+        </div>
+        <div class="span-row depth-1 tip-host">
+          <span class="sk">attr</span><span class="sn">llm.tools[0..26]</span><span class="sd">tool catalog at call time</span>
+          <div class="tip">Full JSON-schema for every tool the agent had access to on this call. Twenty-seven entries, one per registered tool. Lets you reason about "what could the agent have done" not just "what did it do."</div>
+        </div>
+        <div class="span-row depth-1 tip-host">
+          <span class="sk">attr</span><span class="sn">llm.output_messages</span><span class="sd">assistant text + tool_use blocks</span>
+          <div class="tip">The model's response. May contain assistant text, zero or more <code>tool_use</code> blocks, or both. <b>Tool calls live as attributes of this single LLM span. They are not separate child spans.</b> That is by design in the OpenInference Anthropic instrumentor.</div>
+        </div>
+        <div class="span-row depth-1 tip-host">
+          <span class="sk">attr</span><span class="sn">llm.stop_reason</span><span class="sd">end_turn · tool_use · max_tokens</span>
+          <div class="tip">Why the model stopped generating. <code>end_turn</code> means the assistant finished a normal turn. <code>tool_use</code> means it returned tool calls. <code>max_tokens</code> is the truncation case Luke's v50 retry catches.</div>
+        </div>
+      </div>
+      <div class="dgm-foot">Tool dispatch and SQLite mutation happen <em>after</em> the LLM span closes. They're separate code paths in Luke that don't currently emit their own spans. Custom <code>SpanKind.TOOL</code> emission was scoped out (see <a href="proposal.html#section-04">/proposal</a> for why the flat structure already exposes everything the Tool Bypass eval needs).</div>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 12px; color: var(--ink); letter-spacing: -0.012em;">Running the eval against the traces</h3>
 
     <div class="editorial">
       <ul>
-        <li>Regex Tool Bypass classifier on <strong>57</strong> live spans → <strong><code>tool_bypass μ 1.00</code></strong>, pushed back as Phoenix annotations via <code>client.spans.log_span_annotations_dataframe</code></li>
-        <li>Same regex on <strong>169</strong> historical pre-v50 DM turns → 11 flagged: <strong>7 real phantoms, 4 false positives</strong> (full table in <a href="proposal.html#section-04">/proposal section 04</a>)</li>
-        <li>LLM-judge variant via Phoenix's <code>ClassificationEvaluator</code>: <strong>Sonnet beat the regex, Haiku lost to it</strong></li>
-        <li>Runs landed as Phoenix Experiments against Dataset <code>tool_bypass_validation_v1</code> — next iteration compares against the same set in one click</li>
-        <li>Judge registered as a first-class Phoenix evaluator: versioned prompt, model binding, dataset link</li>
+        <li>Curated <strong>16-case dataset</strong> (<code>tool_bypass_validation_v1</code>) from the audit ground truth: 11 flagged turns plus 5 grounded turns the regex correctly didn't flag</li>
+        <li>Regex baseline against the audit corpus of <strong>169 historical DM turns</strong>: 11 flagged, <strong>7 real phantoms, 4 false positives</strong> (full breakdown in <a href="proposal.html#section-04">/proposal</a>)</li>
+        <li>LLM-judge variant landed as Phoenix Experiments on the 16-case set: Sonnet 4.6, Sonnet 4.6 with a v2 prompt pulled from the Prompt Registry, Opus 4.7</li>
+        <li>Final judge registered as a first-class Phoenix evaluator: <code>tool-bypass-judge</code> prompt with versioned history, Opus 4.7 binding, dataset linked</li>
       </ul>
     </div>
 
@@ -574,36 +1294,34 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 04 · the headline finding</div>
-    <h2>Same prompt, three models, the same 14/16 ceiling. The errors flip; the prompt isn't the bottleneck.</h2>
+    <h2>Three judges held the same 14/16 ceiling on the same sixteen cases.</h2>
 
     <div class="editorial">
-      <ul>
-        <li><strong>v1 Sonnet 4.6: 14/16 (88%)</strong>, two missed boundary cases</li>
-        <li>v2: pushed prompt to Phoenix's <strong>Prompt registry</strong> with explicit guidance for those two cases. Pulled via <code>GET /v1/prompts/tool-bypass-judge/latest</code></li>
-        <li><strong>v2 Sonnet: 14/16. Same accuracy. Same two mismatches.</strong> Diffed per-row via <code>GET /v1/experiments/{id}/json</code> — guidance changed explanations, not verdicts</li>
-        <li>v3: same v2 prompt, swapped Sonnet → <strong>Opus 4.7. 14/16 again. Errors flip.</strong></li>
-      </ul>
+      <p>Sixteen cases pulled from the production audit (11 flagged, 5 grounded, hand-verified). Run against three LLM-judges plus Phoenix's off-the-shelf <code>FaithfulnessEvaluator</code>. All four landed as Phoenix Experiments against the same dataset.</p>
     </div>
 
-    <div class="audit-frame" style="margin: 24px 0; max-width: 100%;">
-      <table class="audit-table">
+    <div class="diagram">
+      <div class="dgm-caption">phoenix experiments · dataset tool_bypass_validation_v1</div>
+      <table class="metrics-table">
         <thead>
-          <tr><th style="width: 42%;">case</th><th>truth</th><th>v1 Sonnet</th><th>v2 Sonnet</th><th>v3 Opus 4.7</th></tr>
+          <tr><th style="width: 42%;">experiment</th><th>matches_ground_truth</th><th>cases right</th><th>latency p50</th></tr>
         </thead>
         <tbody>
-          <tr><td>Self-correction quoting an earlier phantom</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
-          <tr><td>Role-play that names a fake ledger</td><td>grounded</td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>phantom ✗</b></td><td class="judge"><b>grounded ✓</b></td></tr>
-          <tr><td>Cross-day diet claim with stale state</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
-          <tr><td>Backfill confirmation that never wrote</td><td>phantom</td><td class="judge">phantom ✓</td><td class="judge">phantom ✓</td><td class="judge"><b>grounded ✗</b></td></tr>
+          <tr><td><code>tool_bypass_sonnet_4_6</code> <span class="sub">v1 prompt</span></td><td class="ok">0.87</td><td>14 of 16</td><td>3.8s</td></tr>
+          <tr><td><code>tool_bypass_sonnet_4_6_v2_prompt</code> <span class="sub">v2 prompt, Prompt Registry</span></td><td class="ok">0.87</td><td>14 of 16</td><td>3.9s</td></tr>
+          <tr><td><code>tool_bypass_opus_4_7</code> <span class="sub">v2 prompt, swapped model</span></td><td class="ok">0.87</td><td>14 of 16</td><td>2.8s</td></tr>
+          <tr><td><code>tool_bypass_faithfulness</code> <span class="sub">Phoenix off-the-shelf, untuned</span></td><td class="warn">0.56</td><td>9 of 16</td><td>3.6s</td></tr>
         </tbody>
       </table>
+      <div class="dgm-foot">Source: <span class="accent">screenshots/11-three-experiment-metrics.png</span> and <span class="accent">screenshots/14-four-evaluator-metrics.png</span>. Phoenix workspace, Datasets &gt; tool_bypass_validation_v1 &gt; compare.</div>
     </div>
 
     <div class="editorial">
       <ul>
-        <li>Sonnet errs strict (false positives). Opus errs charitable (false negatives)</li>
-        <li>For Tool Bypass, <strong>false negatives are the expensive error</strong> — Sonnet primary, Opus as ensemble, route disagreement (4/16 here) to human review</li>
-        <li>n=16 is a unit test, not a benchmark — full Faithfulness comparison + benchmark caveats in <a href="proposal.html#section-05">/proposal</a></li>
+        <li><b>The 14/16 ceiling holds across Sonnet, the v2 prompt, and Opus.</b> Pushing the prompt into the Prompt Registry with explicit guidance for the boundary cases changed the explanations the judge wrote but didn't move the score.</li>
+        <li><b>The Tool-Bypass-specific judge beats off-the-shelf Faithfulness 14/16 to 9/16.</b> Faithfulness flags the right phantoms but over-fires on grounded cases. The boundary cases this prompt was written for (quoted corrections, date collisions, prior-state recalls) are exactly what a generic judge misses.</li>
+        <li><b>Opus is roughly 25% faster than Sonnet on this task.</b> 2.8s p50 versus 3.8s. Same prompt, same dataset.</li>
+        <li><b>Sixteen cases is a unit test.</b> The dataset was sized to validate the boundary-case prompt against the production audit. The 14/16 number means "the prompt holds on the cases we already know about." A real benchmark would need an order of magnitude more cases and a different ground-truth process.</li>
       </ul>
     </div>
   </div>
@@ -619,7 +1337,7 @@
       <ul>
         <li>30 days, 5 users, 169 turns → 11 flagged, <strong>7 real phantoms + 4 false positives</strong></li>
         <li>All 7 predated Luke's v50 defense. <strong>Six days post-v50: zero</strong></li>
-        <li><strong>6 of 7 went undetected in the moment</strong> — users acted on phantom state, recovered hours later via verification questions</li>
+        <li><strong>6 of 7 went undetected in the moment.</strong> Users acted on phantom state and recovered hours later via verification questions</li>
         <li>First 30 min of Phoenix: 38 traces. Same window in <code>conversation_log</code>: 0. Audit was scanning a third of the surface</li>
       </ul>
     </div>
@@ -628,13 +1346,33 @@
       <img src="screenshots/00b-telegram-phantom-verification.png" style="display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px;">
     </figure>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What Phoenix still doesn't see</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 48px 0 12px; color: var(--ink); letter-spacing: -0.012em;">Two failure shapes, one visible to Phoenix</h3>
 
-    <div class="editorial">
-      <ul>
-        <li>Sent: <em>"Luke, show me a picture of what you look like."</em> Luke didn't respond. No trace in Phoenix — handler short-circuited before the LLM call</li>
-        <li>Tool Bypass = LLM called, action claimed, tool never fired. <strong>Handler Bypass</strong> = message received, LLM skipped, user never told why. Natural next primitive</li>
-      </ul>
+    <div class="diagram dim" style="background: var(--paper); padding: 24px;">
+      <div class="dgm-caption">where each bypass lives in the pipeline · hover any step</div>
+      <div class="bypass-pair">
+        <div class="bf">
+          <h4>Tool Bypass</h4>
+          <div class="bf-tag">covered · 14 of 16 by the LLM judge</div>
+          <div class="bf-step tip-host"><span class="bs-num">01</span><span><b>User message</b> arrives. Routed to luke_chat.<div class="tip">Standard DM. Nothing special yet.</div></span></div>
+          <div class="bf-step tip-host"><span class="bs-num">02</span><span><b>Handler</b> loads context, calls the model.<div class="tip">Conversation history, user state, and the tool catalog get passed to <code>messages.create</code>. Phoenix begins its span here.</div></span></div>
+          <div class="bf-step tip-host"><span class="bs-num">03</span><span><b>Anthropic</b> responds with assistant text only.<div class="tip">No <code>tool_use</code> blocks in the response. The model says something like "I've logged your water" but doesn't actually request <code>log_water_dm</code>.</div></span></div>
+          <div class="bf-step skip tip-host"><span class="bs-num">04</span><span><b>No tool dispatch.</b> No SQLite write.<div class="tip">Without a <code>tool_use</code> block, there's nothing for the dispatcher to call. The state-change claim is a phantom.</div></span></div>
+          <div class="bf-step fail tip-host"><span class="bs-num">05</span><span><b>Reply sent</b> to user. Belief diverges from state.<div class="tip">User reads "logged your water" and trusts it. The water count never updated. Catches up hours later when the user verifies via the card or status query.</div></span></div>
+          <div class="bf-vis">Phoenix sees the LLM span. The Tool Bypass eval can read the assistant text and the empty tool-use list and flag the gap.</div>
+        </div>
+        <div class="bf invisible">
+          <h4>Handler Bypass</h4>
+          <div class="bf-tag">invisible · the proposal's next primitive</div>
+          <div class="bf-step tip-host"><span class="bs-num">01</span><span><b>User message</b> arrives. Routed to luke_chat.<div class="tip">Same path so far. Real example: <em>"Luke, show me a picture of what you look like."</em></div></span></div>
+          <div class="bf-step skip tip-host"><span class="bs-num">02</span><span><b>Handler short-circuits</b> before reaching Anthropic.<div class="tip">A filter, a guardrail, an early return, a malformed-content check, a non-text payload Luke can't handle. Code path exits before <code>messages.create</code>.</div></span></div>
+          <div class="bf-step skip tip-host"><span class="bs-num">03</span><span><b>No LLM call.</b> Phoenix has nothing to wrap.<div class="tip">The instrumentor only fires when the SDK is called. Skip the SDK, skip the trace.</div></span></div>
+          <div class="bf-step skip tip-host"><span class="bs-num">04</span><span><b>No reply.</b> No tool dispatch.<div class="tip">User sent a message. Luke didn't act, didn't acknowledge, didn't say why.</div></span></div>
+          <div class="bf-step fail tip-host"><span class="bs-num">05</span><span><b>User waits</b> on a silent agent.<div class="tip">From the user's perspective, Luke ignored them. No error message, no graceful "I can't do that," nothing.</div></span></div>
+          <div class="bf-vis">Phoenix sees nothing. The next primitive needs visibility into the handler itself, not just the LLM call.</div>
+        </div>
+      </div>
+      <div class="dgm-foot">Tool Bypass is the one this take-home addresses. Handler Bypass is the natural sibling. Both belong to the same agent-failure taxonomy; one is currently in scope, the other is the most useful next eval Phoenix could ship.</div>
     </div>
   </div>
 </section>
@@ -656,7 +1394,7 @@
     <a href="https://github.com/BSPLAZA/phoenix/tree/feat/tool-bypass-eval" class="repo-card">
       <div>
         <div class="name">github.com/BSPLAZA/phoenix · feat/tool-bypass-eval</div>
-        <div class="blurb">Phoenix fork with a proof-of-concept Tool Bypass evaluator: YAML prompt config and an evaluator class that follows the existing <code>ClassificationEvaluator</code> pattern. Exploration only, not a PR.</div>
+        <div class="blurb">Two-commit branch on a personal fork. 241 lines across the YAML prompt config, the evaluator class, and tests. Mirrors the existing <code>ClassificationEvaluator</code> pattern used by the eight other built-in evaluators (<code>HallucinationEvaluator</code>, <code>ToolSelectionEvaluator</code>, others). Tests integrated into the same parametrized suite. Evidence that the Tool Bypass primitive is a 200-line addition to Phoenix, not a redesign.</div>
       </div>
       <div class="gh">↗ open fork</div>
     </a>
