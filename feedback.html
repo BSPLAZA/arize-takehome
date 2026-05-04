@@ -826,7 +826,7 @@
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">04 · Custom code evaluators are paywalled.</h3>
 
     <div class="editorial">
-      <p><code>create_code_evaluator()</code> takes two flavors. <code>ManagedCodeConfig</code> references one of 5 pre-built evaluators (regex, exact-match, json-parseable, keywords). Works on Free. <code>CustomCodeConfig</code> uploads a Python function for AX to execute server-side. Returns 400 on Free: "Custom code evals are not available for your account."</p>
+      <p><code>create_code_evaluator()</code> takes two flavors. <code>ManagedCodeConfig</code> references one of the pre-built evaluators (regex, json-parseable, contains-any-keyword, contains-all-keywords). Works on Free. <code>CustomCodeConfig</code> uploads a Python function for AX to execute server-side. Returns 400 on Free: "Custom code evals are not available for your account."</p>
       <p>The Free plan marketing list says "Evals (Offline &amp; Online)" without qualifier. The actual gate is "managed evals only; bring-your-own-Python is paid." For the Tool Bypass scenario, that's the difference between shipping the eval as a registered code path or shipping it as a template (LLM-as-judge).</p>
       <p><b>What I'd change.</b> One line in the Free-plan marketing copy. "Evals (managed primitives + LLM-as-judge templates; custom Python on paid)." Honest disclosure helps developers pick the right tier.</p>
     </div>
