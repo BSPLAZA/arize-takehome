@@ -260,6 +260,17 @@
     width: 200px;
     font-weight: 500;
   }
+  .compare.alyx-prompts table { table-layout: fixed; }
+  .compare.alyx-prompts th:first-child,
+  .compare.alyx-prompts td:first-child {
+    width: 38%;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .compare.alyx-prompts td { font-size: 13.5px; line-height: 1.45; }
 
   .meta-note {
     background: var(--paper-3);
@@ -345,7 +356,7 @@
   <div class="container">
     <div class="eyebrow">workflow feedback</div>
     <h1>Field notes from instrumenting.</h1>
-    <p class="sub">An honest read of the Phoenix Cloud onboarding, plus an outside-in pass on AX from the public surface. Specific moments. What I'd change.</p>
+    <p class="sub">An honest read of the Phoenix Cloud onboarding and a live Alyx session in Arize AX. Specific moments and what I'd change with each.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-01</div>
@@ -358,15 +369,15 @@
 <section class="body">
   <div class="container">
     <div class="label">how I gathered this</div>
-    <h2>Two halves of feedback, gathered two different ways.</h2>
+    <h2>Two halves of feedback, both first-hand.</h2>
 
     <div class="editorial">
-      <p>Phoenix is the half I used. I instrumented Luke and got traces flowing into a Phoenix Cloud workspace. The friction below comes from that session.</p>
-      <p>AX is the half I observed from the public surface: product pages, Alyx documentation, demo videos, case studies. Flagging which observations are first-hand and which are second-hand reads, since "the docs implied X" is a different signal than "I clicked X and it broke."</p>
+      <p>Phoenix is the half I instrumented. I shipped Luke into a Phoenix Cloud workspace and the friction below comes from that session.</p>
+      <p>AX is the half I drove from inside the live workspace: Alyx prompts, the evaluator UI, the monitors page. I got six "I've opened the page for you" replies in a row. That's the AX friction.</p>
     </div>
 
     <div class="meta-note">
-      <b>Honesty rule:</b> Phoenix friction is from a live install. AX friction is from a docs and product-tour pass. The Phoenix half is what I'd change as a builder. The AX half is what I'd ask the team about as a PM.
+      <b>Honesty rule:</b> Phoenix friction is from a live install. AX friction is from a live Alyx session in the workspace. Both halves are first-hand. The Phoenix half is what I'd change as a builder. The AX half is what I'd reshape as a PM.
     </div>
   </div>
 </section>
@@ -530,26 +541,64 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 03 · ax</div>
-    <h2>An outside-in read on the surfaces I'd actually work on.</h2>
+    <h2>Alyx is a router, not an agent.</h2>
 
     <div class="editorial">
-      <p>This half is from the public surface: documentation, product pages, the Alyx demo video. Less specific than the Phoenix half, framed as a PM's read before a first product review.</p>
+      <p>Six prompts in a live Alyx session in the AX workspace. Six page-handoffs in response. The pattern: Alyx interprets the intent, identifies the right page, opens it, disengages. "Alyx will help you" inside the page is a UI handoff, not a continuation. Once you click in, Alyx is gone and you're filling out the form yourself.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I observed</h3>
+    <div class="compare alyx-prompts">
+      <table>
+        <tr><th>What I asked Alyx</th><th>What Alyx returned</th></tr>
+        <tr>
+          <td>"What failure modes do you see in this project?"</td>
+          <td>Asked which project. After I picked luke-75-hard: "I've opened your luke-75-hard project where Alyx will continue helping you analyze failure modes." Stopped.</td>
+        </tr>
+        <tr>
+          <td>"What failure modes do you see in this project?" (repeated, project context already set)</td>
+          <td>"I've opened your project page where Alyx will help you identify and analyze failure modes." Listed what the page can do. Did nothing itself.</td>
+        </tr>
+        <tr>
+          <td>"Look at the luke-75-hard project. What failure modes do you see?"</td>
+          <td>"I can see your project, but I don't currently have tools to directly query and analyze trace data." Suggested installing the arize-trace skill in Cursor or Claude Code. Routed to the project page.</td>
+        </tr>
+        <tr>
+          <td>"Why did experiment tool_bypass_judge_sonnet_phoenix_parity only hit 9 of 16?"</td>
+          <td>"I've opened the tool_bypass_validation_v1 dataset page where Alyx will help you investigate." No analysis.</td>
+        </tr>
+        <tr>
+          <td>"Can you build me an evaluator that catches tool_bypass?"</td>
+          <td>"I've opened the evaluator creation page where Alyx will help you build a tool bypass detection evaluator." The actual creation happens in the form I now have to fill out.</td>
+        </tr>
+        <tr>
+          <td>"Set up a monitor that fires when tool_bypass score drops"</td>
+          <td>"I've opened the Monitors page where Alyx will help you create an alert..." Same shape.</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="editorial">
+      <p>The cost isn't one disappointing session. It's faith. After three "I've opened the page" replies, users stop asking Alyx anything substantive. By the time the agent improves, the muscle memory is "skip Alyx, just navigate." That's trust the product has to earn back when it didn't have to spend it.</p>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I'd change</h3>
+
+    <div class="editorial">
+      <ul>
+        <li><b>Continue agentic flows in-context.</b> When a user asks "build me an evaluator," Alyx should call <code>evaluators.create_template_evaluator</code> on the user's behalf, surface the result, ask follow-ups. The page-handoff is the fallback, not the default.</li>
+        <li><b>If Alyx can't act, warm handoff with context.</b> Pre-fill the evaluator form with a draft prompt. Pre-set the monitor threshold from the conversation. Pre-filter the traces panel by the user's question. Right now the routing strips context on the way through.</li>
+      </ul>
+    </div>
+
+    <div class="meta-note">
+      <b>Phoenix Cloud has no Alyx-equivalent.</b> The pure existence of Alyx is an AX win. As-shipped, Alyx is doing less than the user could do themselves with the sidebar; the win only lands when Alyx earns its place above the navigation bar.
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Other AX observations</h3>
 
     <div class="frictions">
       <div class="friction">
         <div class="num">01</div>
-        <div class="body">
-          <span class="what">Alyx's empty state: what does it do for me on day one?</span>
-          From the demo and docs, Alyx is positioned as an agent that helps users debug their LLM app. The first-load empty state isn't clear from the public surface. What does Alyx know about my app before I've explained anything? Does it auto-discover from my traces, or wait for me to type?
-          <span class="so-what">A PM hire question, not a feedback note: what's the time-to-value loop for Alyx, and is empty-state agency the right place to invest? Tool Bypass at runtime in Alyx (the proposal's 30-day target) shifts that loop from "what do I ask Alyx" to "Alyx tells me before I ask."</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">02</div>
         <div class="body">
           <span class="what">The Bedrock AgentCore partnership reads as another integration when it could read as a wedge.</span>
           AX shipped a partnership with AWS Bedrock AgentCore. From the customer-decision surface, that's a meaningful signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX. The current page treats it as a logo on a list.
@@ -558,7 +607,7 @@
       </div>
 
       <div class="friction">
-        <div class="num">03</div>
+        <div class="num">02</div>
         <div class="body">
           <span class="what">The customer case studies are technical, not commercial.</span>
           The case-study pages describe implementation: which models, which evals, which features. They don't describe commercial outcomes: adoption inside the customer's company, time-to-value, second-quarter renewal signals.
@@ -567,15 +616,15 @@
       </div>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Phoenix versus AX, from outside</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Phoenix versus AX</h3>
 
     <div class="compare">
       <table>
-        <tr><th>Dimension</th><th>Phoenix (used)</th><th>AX (observed)</th></tr>
+        <tr><th>Dimension</th><th>Phoenix (used)</th><th>AX (live workspace)</th></tr>
         <tr>
           <td>Time to first trace</td>
           <td>~30 minutes including dependency installation</td>
-          <td>Unclear from surface; the Alyx self-eval angle suggests this collapses to seconds for AX customers</td>
+          <td>Did not test the AX onboarding flow directly</td>
         </tr>
         <tr>
           <td>Eval surface</td>
@@ -590,12 +639,12 @@
         <tr>
           <td>Trace-to-eval handoff</td>
           <td>Visible gap; "No annotation configurations" dead end</td>
-          <td>Implied to be tighter via dataset-driven evals; would want to verify</td>
+          <td>Alyx routes to the eval page; user fills the form. Not tighter than Phoenix on this surface.</td>
         </tr>
         <tr>
-          <td>Adoption fuel</td>
-          <td>OSS contributors, devrel-led</td>
-          <td>Sales-led, Bedrock-anchored, customer-renewal-driven</td>
+          <td>In-product agent</td>
+          <td>None</td>
+          <td>Alyx exists. Currently a router; the prescription above is what would make it agentic.</td>
         </tr>
       </table>
     </div>
