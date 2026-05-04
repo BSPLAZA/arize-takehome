@@ -328,11 +328,205 @@
   footer .links { text-align: right; line-height: 1.9; }
   footer .links a { display: block; }
 
+  /* ─── Hover tip pattern (shared with /agent) ───────────────── */
+  .tip-host { position: relative; }
+  .tip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 16px;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    line-height: 1.5;
+    border-radius: 4px;
+    width: 240px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+    z-index: 20;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .tip b { color: var(--accent-soft); font-weight: 600; }
+  .tip::after {
+    content: "";
+    position: absolute;
+    top: 100%; left: 50%;
+    margin-left: -6px;
+    border: 6px solid transparent;
+    border-top-color: var(--ink);
+  }
+  .tip-host:hover > .tip { opacity: 1; }
+
+  /* Wins grid — AX wins cards */
+  .wins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 28px 0;
+  }
+  .win {
+    background: var(--paper);
+    padding: 22px 22px 18px;
+    cursor: pointer;
+    transition: background 200ms ease;
+  }
+  .win:hover { background: var(--paper-2); }
+  .win .wn {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--good);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .win .wt {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .win .wd {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.45;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 320ms ease;
+  }
+  .win:hover .wd { max-height: 220px; margin-top: 8px; }
+
+  /* SDK comparison: Phoenix HTTP vs AX gRPC side-by-side */
+  .setup-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 28px 0;
+  }
+  .setup-card {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 22px 24px;
+  }
+  .setup-card h4 {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .setup-card .sc-tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .setup-card.warn .sc-tag { color: var(--accent); }
+  .setup-card.ok .sc-tag { color: var(--good); }
+  .setup-card .sc-step {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--ink-2);
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--line);
+    line-height: 1.45;
+  }
+  .setup-card .sc-step:last-of-type { border-bottom: none; }
+  .setup-card .sc-step b { color: var(--ink); font-weight: 500; }
+  .setup-card .sc-step code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--paper-3);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .setup-card .sc-result {
+    margin-top: 14px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--paper-3);
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+    border-left: 3px solid var(--good);
+  }
+  .setup-card.warn .sc-result {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+  }
+
+  /* Verbatim quote block */
+  .verbatim {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    padding: 28px 32px;
+    margin: 28px 0;
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-variation-settings: "opsz" 19;
+    font-weight: 380;
+    max-width: 820px;
+  }
+  .verbatim .vmark {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .verbatim em { color: var(--accent); font-style: italic; font-weight: 420; }
+
+  /* Diagram wrapper for /feedback */
+  .diagram {
+    margin: 32px 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px 28px;
+  }
+  .diagram.dim { background: var(--paper-2); }
+  .dgm-caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .dgm-foot {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 18px;
+    letter-spacing: 0.02em;
+  }
+  .dgm-foot .accent { color: var(--accent); }
+
   @media (max-width: 800px) {
     .container { padding: 0 24px; }
     .hero h1 { font-size: 44px; }
     .compare td:first-child { width: auto; }
     .friction { grid-template-columns: 1fr; gap: 8px; }
+    .setup-pair { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -356,195 +550,223 @@
   <div class="container">
     <div class="eyebrow">workflow feedback</div>
     <h1>Field notes from instrumenting.</h1>
-    <p class="sub">An honest read of the Phoenix Cloud onboarding and a live Alyx session in Arize AX. Specific moments and what I'd change with each.</p>
+    <p class="sub">I started with Phoenix, switched to AX, drove both end-to-end. What pulled me over, what worked, what broke, and what I'd change.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
-      <div>2026-05-01</div>
-      <div>Reading time: 5 minutes</div>
+      <div>2026-05-04</div>
+      <div>Reading time: 6 minutes</div>
     </div>
   </div>
 </section>
 
-<!-- METHOD NOTE -->
+<!-- WHY I SWITCHED -->
 <section class="body">
   <div class="container">
-    <div class="label">how I gathered this</div>
-    <h2>Two halves of feedback, both first-hand.</h2>
+    <div class="label">section 01 · why I switched</div>
+    <h2>Phoenix is open source, private, free with no limits. I switched to AX anyway.</h2>
 
     <div class="editorial">
-      <p>Phoenix is the half I instrumented. I shipped Luke into a Phoenix Cloud workspace and the friction below comes from that session.</p>
-      <p>AX is the half I drove from inside the live workspace: Alyx prompts, the evaluator UI, the monitors page. I got six "I've opened the page for you" replies in a row. That's the AX friction.</p>
+      <p>I picked Phoenix first for the right reasons. It's open source, private, and the free Cloud tier has no real ceiling for an agent at my scale. I shipped Luke into a Phoenix Cloud workspace, ran traces, ran experiments, registered an evaluator. Then I instrumented the same agent into AX and did the same thing.</p>
+      <p>I stayed in AX. The reasons are easier to read in my own words.</p>
     </div>
 
-    <div class="meta-note">
-      <b>Honesty rule:</b> Phoenix friction is from a live install. AX friction is from a live Alyx session in the workspace. Both halves are first-hand. The Phoenix half is what I'd change as a builder. The AX half is what I'd reshape as a PM.
+    <div class="verbatim">
+      <span class="vmark">Bryan, mid-session, on the switch</span>
+      I started with Phoenix because it was open source, private, and free with no limits. The interface was <em>really lacking</em>. The features I wanted matter even if I didn't want to scale. The AX UI is friendlier, more <em>playful</em>, more intuitive. With gRPC I didn't have to deal with the <em>finickiness</em> of HTTP requests and getting them well-formatted, or asking AI to fix them.
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 12px; color: var(--ink); letter-spacing: -0.012em;">Setup, both platforms, side by side</h3>
+
+    <div class="setup-pair">
+      <div class="setup-card warn">
+        <h4>Phoenix Cloud</h4>
+        <div class="sc-tag">HTTP · workspace-prefixed</div>
+        <div class="sc-step"><b>Endpoint trial-and-error.</b> Bare domain returns 401. Workspace-only URL returns 200 and silently drops traces. The working shape is <code>app.phoenix.arize.com/s/&lt;workspace&gt;/v1/traces</code>.</div>
+        <div class="sc-step"><b>Five ways to pass the API key.</b> <code>Client(api_key=)</code>, <code>PHOENIX_API_KEY</code>, header dict, Bearer header, <code>PHOENIX_CLIENT_HEADERS</code>. None flagged as recommended.</div>
+        <div class="sc-step"><b>HTTP transport details surface in the SDK.</b> When the URL is wrong, the failure mode depends on which wrong URL you tried. Two have to be diagnosed separately.</div>
+        <div class="sc-result">~10 minutes of trial and error to land traces.</div>
+      </div>
+      <div class="setup-card ok">
+        <h4>Arize AX</h4>
+        <div class="sc-tag">gRPC · single header</div>
+        <div class="sc-step"><b>Single endpoint.</b> <code>otlp.arize.com</code>. No workspace path to remember.</div>
+        <div class="sc-step"><b>Three required params.</b> <code>space_id</code>, <code>api_key</code>, <code>project_name</code>. Worked first try.</div>
+        <div class="sc-step"><b>Transport hidden from the developer.</b> The package picks gRPC. Auth is one header. Wire-format details stay below the API.</div>
+        <div class="sc-result">Traces visible in &lt; 60 seconds.</div>
+      </div>
+    </div>
+
+    <div class="editorial">
+      <p>The transport choice is the smallest example of the larger pattern. Phoenix exposes the SDK as a thin wrapper over its REST + GraphQL surface. AX exposes higher-level primitives. For a builder shipping in a hurry, AX gets out of your way faster. For a builder customizing edge cases, Phoenix gives you more access. I needed the first.</p>
     </div>
   </div>
 </section>
 
-<!-- PHOENIX -->
+<!-- PHOENIX FRICTION -->
 <section class="body dim">
   <div class="container">
-    <div class="label">section 01 · phoenix</div>
-    <h2>Onboarding to first trace, in one afternoon.</h2>
+    <div class="label">section 02 · phoenix friction</div>
+    <h2>What "the interface is really lacking" means concretely.</h2>
 
     <div class="editorial">
-      <p>The friction I hit between sign-in and seeing my eval go green:</p>
+      <p>Five frictions from the Phoenix session. The 8-item raw list is at the bottom for anyone curious. These five are the ones that drove the switch.</p>
     </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I hit, in order</h3>
 
     <div class="frictions">
       <div class="friction">
         <div class="num">01</div>
         <div class="body">
-          <span class="what"><code>Client(base_url=...)</code> needs the workspace path or every call returns 401.</span>
-          The Cloud quickstart shows the bare domain. <code>Client(base_url='https://app.phoenix.arize.com')</code> → 401. Three attempts to land on <code>/s/bsplaza</code>.
-          <span class="so-what">Infer the workspace from the JWT, or return "this key is bound to workspace X; set base_url to ..." instead of a generic 401.</span>
+          <span class="what">The trace-to-eval handoff is invisible from the UI.</span>
+          The trace-detail annotations panel reads "No annotation configurations for this project." No CTA. No "run a built-in eval" button. The only path is a Python SDK script. Once you've created configs via REST, they still don't appear in this panel because the workspace-to-project binding isn't surfaced.
+          <span class="so-what">Wire the empty panel to one-click: pick eval, pick model, run on this trace. The first eval should be a button, not a notebook.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">02</div>
         <div class="body">
-          <span class="what">API key plumbing has five working paths and no canonical one.</span>
-          <code>Client(api_key=...)</code>, <code>PHOENIX_API_KEY</code>, <code>headers={'api_key':...}</code>, Bearer header, <code>PHOENIX_CLIENT_HEADERS</code>. All valid, none flagged as recommended.
-          <span class="so-what">Pick one recommended path; put it at the top of the SDK quickstart.</span>
+          <span class="what">Evaluator registration is a UI-only flow.</span>
+          No public REST or GraphQL mutation accepts prompt plus model plus dataset and lands an evaluator on <code>/evaluators</code>. I had to break out of the agent loop and click through the modal manually.
+          <span class="so-what">Surface <code>POST /v1/evaluators</code>. Without it, AI-driven Phoenix workflows hit a wall exactly where the agent should keep going. Alyx will hit the same wall on AX customers' behalf.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">03</div>
         <div class="body">
-          <span class="what">DataFrame columns aren't list-flattened the way the rest of the schema is.</span>
-          <code>attributes.llm.output_messages</code> returns a list of dicts, not flattened to <code>attributes.llm.output_messages.0.message.content</code>. My extractor returned empty strings until I introspected.
-          <span class="so-what">Flatten consistently, or surface the schema in <code>get_spans_dataframe</code>'s docstring.</span>
+          <span class="what">The simplest evaluator primitives are buried.</span>
+          Found <code>MatchesRegex</code> after writing a custom regex classifier. Would have replaced 30 lines. Docs lead with the LLM judges. The lightweight primitives aren't on the same page.
+          <span class="so-what">"Before you write your own evaluator" page listing <code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>. AX surfaces these as first-class registered entities; Phoenix has them but doesn't elevate them.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">04</div>
         <div class="body">
-          <span class="what">The simplest evaluator primitive is buried.</span>
-          Found <code>MatchesRegex</code> after writing a custom regex classifier. Would have replaced 30 lines. Docs lead with the LLM judges; lightweight primitives aren't on the same page.
-          <span class="so-what">"Before you write your own evaluator" page listing <code>MatchesRegex</code>, <code>ExactMatch</code>, <code>PrecisionRecallFScore</code>.</span>
+          <span class="what">The filter bar expects raw query syntax.</span>
+          <code>span_kind == 'LLM'</code> as raw input. No query builder, no column-header click-to-filter, no autocomplete. Power-user friendly, beginner-hostile.
+          <span class="so-what">Column-header dropdowns for kind, status, latency bucket. Keep the raw query for power users.</span>
         </div>
       </div>
 
       <div class="friction">
         <div class="num">05</div>
         <div class="body">
-          <span class="what">The trace-to-eval handoff is invisible from the UI.</span>
-          Trace-detail annotations panel reads "No annotation configurations for this project." No CTA, no "run a built-in eval" button. Only path is a Python SDK script.
-          <span class="so-what">Wire the empty panel to one-click: pick eval, pick model, run on this trace. First eval should be a button, not a notebook.</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">06</div>
-        <div class="body">
-          <span class="what">The filter bar expects you to know the query syntax.</span>
-          <code>span_kind == 'LLM'</code> as raw input. No query builder, no column-header click-to-filter, no autocomplete.
-          <span class="so-what">Column-header dropdowns for kind, status, latency bucket. Keep the raw query for power users.</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">07</div>
-        <div class="body">
-          <span class="what">URLs use base64 GraphQL IDs (<code>UHJvamVjdDox</code>) instead of slugs.</span>
-          Cosmetic, but unfriendly to share, and some browser-automation tools refuse to navigate them.
-          <span class="so-what">Add a slug alongside the base64. Default the URL bar to the slug.</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">08</div>
-        <div class="body">
-          <span class="what">Annotation Configs created via REST don't show up in the trace-detail "Edit Annotations" panel.</span>
-          <code>POST /v1/annotation_configs</code> returns 200. <code>log_span_annotations_dataframe</code> returns 200. Annotation Summary shows the rollup. But Edit Annotations says "no configurations for this project," and <code>POST/PUT /v1/projects/{id}/annotation_configs</code> both return 405. Reviewers can't label without a notebook.
-          <span class="so-what">Auto-bind workspace configs to all projects, or expose the binding endpoint over REST.</span>
+          <span class="what">No agent assistant. No Monitors. No Dashboards. No Playgrounds. No Labeling Queues.</span>
+          The interface gap isn't one missing feature. It's a category of work the platform doesn't currently support without a notebook in the loop. AX has all of them.
+          <span class="so-what">Each is its own roadmap conversation. Bundling matters: the absence of any one is fine; the absence of all of them is what defines the gap.</span>
         </div>
       </div>
     </div>
 
+    <details style="margin: 32px 0 0; max-width: 880px;">
+      <summary style="font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; padding: 12px 0;">+ three more, smaller-impact</summary>
+      <div class="frictions">
+        <div class="friction">
+          <div class="num">06</div>
+          <div class="body">
+            <span class="what">DataFrame columns aren't list-flattened the way the rest of the schema is.</span>
+            <code>attributes.llm.output_messages</code> returns a list of dicts. The flat <code>attributes.llm.output_messages.0.message.content</code> form isn't there. Extractor returned empty strings until I introspected.
+            <span class="so-what">Flatten consistently, or surface the schema in the SDK docstring.</span>
+          </div>
+        </div>
+        <div class="friction">
+          <div class="num">07</div>
+          <div class="body">
+            <span class="what">URLs use base64 GraphQL IDs.</span>
+            <code>UHJvamVjdDox</code> instead of <code>luke-75-hard</code>. Cosmetic but unfriendly to share. Some browser-automation tools refuse to navigate them.
+            <span class="so-what">Add a slug alongside the base64. Default the URL bar to the slug.</span>
+          </div>
+        </div>
+        <div class="friction">
+          <div class="num">08</div>
+          <div class="body">
+            <span class="what">Workspace endpoint trap.</span>
+            <code>https://app.phoenix.arize.com</code> returns 401. <code>https://app.phoenix.arize.com/s/&lt;workspace&gt;</code> returns 200 and silently drops spans. The working shape is <code>/s/&lt;workspace&gt;/v1/traces</code>.
+            <span class="so-what">The Cloud onboarding panel should show this exact URL. Right now it shows the workspace-only form.</span>
+          </div>
+        </div>
+      </div>
+    </details>
   </div>
 </section>
 
-<!-- WHAT DIDN'T WORK -->
+<!-- AX WINS -->
 <section class="body">
   <div class="container">
-    <div class="label">section 02 · what I tried that struggled</div>
-    <h2>I tried to drive Phoenix from Claude Code as my agent. The seams showed.</h2>
+    <div class="label">section 03 · what's better on ax</div>
+    <h2>What pulled me over.</h2>
 
     <div class="editorial">
-      <p>Claude Code drove the instrumentation work with me supervising — the closest thing I have to a shadow-Alyx. Where it stalled is its own piece of feedback.</p>
+      <p>Seven things AX does that Phoenix doesn't, drawn from the same week of side-by-side use. Hover any card for the concrete delta.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What worked</h3>
-
-    <div class="editorial">
-      <ul>
-        <li>SDK ops: span queries, dataset CRUD, experiments, annotations — all driven without touching the UI</li>
-        <li>GraphQL mutations once the schema was discovered</li>
-        <li>OTLP shipping from Luke to the workspace</li>
-      </ul>
-    </div>
-
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Where it stalled</h3>
-
-    <div class="frictions">
-      <div class="friction">
-        <div class="num">01</div>
-        <div class="body">
-          <span class="what">Evaluator registration is a UI-only flow.</span>
-          No public REST or GraphQL mutation accepts prompt + model + dataset and lands an evaluator on <code>/evaluators</code>. I had to break out of the agent loop and click through the modal myself.
-          <span class="so-what">Surface <code>POST /v1/evaluators</code>. Without it, AI-driven Phoenix workflows hit a wall exactly where the agent should keep going.</span>
+    <div class="diagram">
+      <div class="dgm-caption">ax wins · hover any card</div>
+      <div class="wins-grid">
+        <div class="win tip-host">
+          <div class="wn">free plan</div>
+          <div class="wt">Generous and honest</div>
+          <div class="wd">25k spans, 1 GB, 15-day retention. Includes Alyx, Monitors, Dashboards, Playgrounds, Labeling Queues. Phoenix Cloud has no equivalent free SaaS tier with the agent assistant.</div>
         </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">02</div>
-        <div class="body">
-          <span class="what">Schema discovery requires <code>__schema</code> introspection.</span>
-          No surfaced SDL or "what mutations exist for X" page. Each discovery cost round-trips and wrong guesses.
-          <span class="so-what">Publish the GraphQL SDL alongside the REST OpenAPI spec on a single API reference page an agent can fetch in one read.</span>
+        <div class="win tip-host">
+          <div class="wn">cost tracking</div>
+          <div class="wt">Auto on every LLM span</div>
+          <div class="wd"><code>attributes.llm.cost.prompt</code>, <code>.completion</code>, <code>.total</code> on every span out of the box. Phoenix doesn't surface cost without manual computation downstream.</div>
         </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">03</div>
-        <div class="body">
-          <span class="what">Annotation Configs created via REST don't show up in the trace UI panel.</span>
-          Same as section 01 friction 08. The agent writes structured data correctly; the UI still says "no configurations for this project."
-          <span class="so-what">Auto-bind workspace configs to projects, or surface the binding as part of the create flow.</span>
+        <div class="win tip-host">
+          <div class="wn">ai integrations</div>
+          <div class="wt">One key, every surface</div>
+          <div class="wd">Set up Anthropic once at the org level. Every evaluator and prompt references it. Phoenix passes credentials per call, which is friction at scale.</div>
         </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">04</div>
-        <div class="body">
-          <span class="what">Modal-heavy UI is hostile to browser automation.</span>
-          Every modal click via browser MCP threw <code>chrome-extension://</code> errors. Locked-down enterprise browsers will hit similar walls.
-          <span class="so-what">Where workflows need a modal, also expose a same-page panel or a deep-linkable URL.</span>
+        <div class="win tip-host">
+          <div class="wn">prompt registry</div>
+          <div class="wt">Versioned, with labels</div>
+          <div class="wd">Required <code>commit_message</code> on every create. Pull by version or by label (<code>production</code>, <code>staging</code>). Tested the full promote-then-rollback flow. Phoenix has prompts but no first-class label workflow.</div>
+        </div>
+        <div class="win tip-host">
+          <div class="wn">online tasks</div>
+          <div class="wt">First-class continuous eval</div>
+          <div class="wd"><code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code> wires an evaluator to a project's stream. I scored 11 of 24 live spans with my Tool Bypass evaluator, zero errors. Phoenix has the parts; the wire-up is more manual.</div>
+        </div>
+        <div class="win tip-host">
+          <div class="wn">agent topology</div>
+          <div class="wt">Graph as a span attribute</div>
+          <div class="wd"><code>graph.node.id</code> + <code>graph.node.parent_id</code> render as an interactive graph view. Phoenix has no equivalent for visualizing multi-agent orchestration.</div>
+        </div>
+        <div class="win tip-host">
+          <div class="wn">labeling queues</div>
+          <div class="wt">Human review, first-class</div>
+          <div class="wd">Full review workflow with email-based reviewer assignment, instructions, per-record routing. Phoenix has no equivalent UI for routing disputed cases to a human.</div>
+        </div>
+        <div class="win tip-host">
+          <div class="wn">5 managed primitives</div>
+          <div class="wt">Lightweight evals as entities</div>
+          <div class="wd"><code>MatchesRegex</code>, <code>ExactMatch</code>, <code>JsonParseable</code>, <code>ContainsAnyKeyword</code>, <code>ContainsAllKeywords</code>. Surfaced as registered, configurable, versioned objects. Phoenix has these too but doesn't elevate them.</div>
         </div>
       </div>
     </div>
 
     <div class="meta-note">
-      <b>Why this matters for Arize:</b> Alyx is the in-product agent. Anything blocking external agents from driving Phoenix end-to-end constrains what Alyx can do for the customer. Eval-registration is the highest-impact gap.
+      <b>The free plan is the most underrated win.</b> A solo builder can use AX end-to-end without filling out a sales form. That's a different product-led-growth posture than the AX page communicates publicly.
     </div>
   </div>
 </section>
 
-<!-- AX -->
+<!-- AX GAPS -->
 <section class="body dim">
   <div class="container">
-    <div class="label">section 03 · ax</div>
-    <h2>Alyx is a router, not an agent.</h2>
+    <div class="label">section 04 · what broke on ax</div>
+    <h2>Honest report from inside the workspace.</h2>
 
     <div class="editorial">
-      <p>Six prompts in a live Alyx session in the AX workspace. Six page-handoffs in response. The pattern: Alyx interprets the intent, identifies the right page, opens it, disengages. "Alyx will help you" inside the page is a UI handoff, not a continuation. Once you click in, Alyx is gone and you're filling out the form yourself.</p>
+      <p>Five gaps, in order of impact. Headline first: Alyx is a router, not an agent.</p>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 36px 0 10px; color: var(--ink); letter-spacing: -0.012em;">01 · Alyx is a router, not an agent.</h3>
+
+    <div class="editorial">
+      <p>Six prompts in a live Alyx session. Six page-handoffs in response. Alyx interprets the intent, identifies the right page, opens it, disengages. "Alyx will help you" inside the page is a UI handoff, not a continuation. Once you click in, Alyx is gone and you're filling out the form yourself.</p>
     </div>
 
     <div class="compare alyx-prompts">
@@ -560,7 +782,7 @@
         </tr>
         <tr>
           <td>"Look at the luke-75-hard project. What failure modes do you see?"</td>
-          <td>"I can see your project, but I don't currently have tools to directly query and analyze trace data." Suggested installing the arize-trace skill in Cursor or Claude Code. Routed to the project page.</td>
+          <td>"I can see your project, but I don't currently have tools to directly query and analyze trace data." Routed to the project page.</td>
         </tr>
         <tr>
           <td>"Why did experiment tool_bypass_judge_sonnet_phoenix_parity only hit 9 of 16?"</td>
@@ -572,81 +794,58 @@
         </tr>
         <tr>
           <td>"Set up a monitor that fires when tool_bypass score drops"</td>
-          <td>"I've opened the Monitors page where Alyx will help you create an alert..." Same shape.</td>
+          <td>"I've opened the Monitors page where Alyx will help you create an alert." Same shape.</td>
         </tr>
       </table>
     </div>
 
     <div class="editorial">
-      <p>The cost isn't one disappointing session. It's faith. After three "I've opened the page" replies, users stop asking Alyx anything substantive. By the time the agent improves, the muscle memory is "skip Alyx, just navigate." That's trust the product has to earn back when it didn't have to spend it.</p>
+      <p>The cost isn't one disappointing session. It's faith. After three "I've opened the page" replies, users stop asking Alyx anything substantive. By the time the agent improves, the muscle memory is "skip Alyx, just navigate."</p>
+      <p><b>What I'd change.</b> Alyx should continue agentic flows in-context. When a user asks "build me an evaluator," Alyx should call <code>evaluators.create_template_evaluator</code> on the user's behalf, surface the result, ask follow-ups. If Alyx can't act, warm handoff with context: pre-fill the form with a draft prompt, pre-set the threshold from the conversation, pre-filter the traces panel. Right now the routing strips context on the way through.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">What I'd change</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">02 · Labeling Queue: clicking Next discards your label.</h3>
 
     <div class="editorial">
-      <ul>
-        <li><b>Continue agentic flows in-context.</b> When a user asks "build me an evaluator," Alyx should call <code>evaluators.create_template_evaluator</code> on the user's behalf, surface the result, ask follow-ups. The page-handoff is the fallback, not the default.</li>
-        <li><b>If Alyx can't act, warm handoff with context.</b> Pre-fill the evaluator form with a draft prompt. Pre-set the monitor threshold from the conversation. Pre-filter the traces panel by the user's question. Right now the routing strips context on the way through.</li>
-      </ul>
+      <p>I was annotating a labeling queue (16 disputed Tool Bypass cases). Each card has radio options for <code>phantom</code> or <code>grounded</code>, then two buttons: <b>Save</b> and <b>Next</b>. The radio fills blue when you click it, which feels like state. It's not. Selecting a radio doesn't persist. Save persists but doesn't advance. Next advances but doesn't persist.</p>
+      <p>I went back to verify a previous row and it was empty. To actually annotate every row, the reviewer has to click two buttons in sequence: <b>Save</b>, then <b>Next</b>. Sixteen rows is thirty-two clicks for what should be sixteen. No warning. No "unsaved changes" toast. The bug is silent.</p>
     </div>
 
     <div class="meta-note">
-      <b>Phoenix Cloud has no Alyx-equivalent.</b> The pure existence of Alyx is an AX win. As-shipped, Alyx is doing less than the user could do themselves with the sidebar; the win only lands when Alyx earns its place above the navigation bar.
+      <b>What I'd change.</b> Auto-save on selection (cleanest), or auto-save on Next (more conservative), or combine into one "Save &amp; Next" primary action. Anything but silent data-loss on the human-review surface, which is the surface where data-loss is most expensive.
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Other AX observations</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">03 · Two evaluator surfaces, hand-rolled bridge.</h3>
 
-    <div class="frictions">
-      <div class="friction">
-        <div class="num">01</div>
-        <div class="body">
-          <span class="what">The Bedrock AgentCore partnership reads as another integration when it could read as a wedge.</span>
-          AX shipped a partnership with AWS Bedrock AgentCore. From the customer-decision surface, that's a meaningful signal: Bedrock customers don't have to choose between the AWS-blessed eval path and AX. The current page treats it as a logo on a list.
-          <span class="so-what">If the AWS-anchored enterprise segment is a real cohort, the partnership deserves a section, not a logo.</span>
-        </div>
-      </div>
-
-      <div class="friction">
-        <div class="num">02</div>
-        <div class="body">
-          <span class="what">The customer case studies are technical, not commercial.</span>
-          The case-study pages describe implementation: which models, which evals, which features. They don't describe commercial outcomes: adoption inside the customer's company, time-to-value, second-quarter renewal signals.
-          <span class="so-what">Add a top-line outcome metric to each case study (time-to-first-eval, percent of teams adopted, weeks-to-second-product-line). Technical depth is good. Commercial framing is what converts the next prospect.</span>
-        </div>
-      </div>
+    <div class="editorial">
+      <p>AX has registered evaluators (<code>client.evaluators.create_template_evaluator()</code>) and inline experiment evaluators (<code>LLMEvaluator</code> subclass or callable). They look like the same thing. They are not connected. You cannot pass a registered evaluator's ID to <code>experiments.run()</code>. The registered evaluator is for online tasks and the UI; the inline one is for offline experiments.</p>
+      <p>The bridge is the prompt registry. Push the prompt content via <code>prompts.create()</code>, pull by name in your experiment script, subclass <code>LLMEvaluator</code>, fill the f-string template, call the LLM yourself. Tested. Worked. <b>13 of 16 with the registered prompt vs 9 of 16 with an inline hand-written one</b>, same model, same data. The registered prompt was shorter and outperformed.</p>
+      <p><b>What I'd change.</b> Add <code>LLMEvaluator.from_registered_prompt("name")</code> that returns a fully-configured evaluator. The opinionated common case isn't paved.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 40px 0 8px; color: var(--ink); letter-spacing: -0.012em;">Phoenix versus AX</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">04 · Custom code evaluators are paywalled.</h3>
 
-    <div class="compare">
-      <table>
-        <tr><th>Dimension</th><th>Phoenix (used)</th><th>AX (live workspace)</th></tr>
-        <tr>
-          <td>Time to first trace</td>
-          <td>~30 minutes including dependency installation</td>
-          <td>Did not test the AX onboarding flow directly</td>
-        </tr>
-        <tr>
-          <td>Eval surface</td>
-          <td>Library of eight evaluators in <code>phoenix.evals.metrics</code>, batch-run pattern</td>
-          <td>Same library, plus runtime self-eval surface in Alyx; same primitive, different product</td>
-        </tr>
-        <tr>
-          <td>Customer commitment</td>
-          <td>Free; OSS or Cloud</td>
-          <td>Enterprise contract; AWS Bedrock + private connect path</td>
-        </tr>
-        <tr>
-          <td>Trace-to-eval handoff</td>
-          <td>Visible gap; "No annotation configurations" dead end</td>
-          <td>Alyx routes to the eval page; user fills the form. Not tighter than Phoenix on this surface.</td>
-        </tr>
-        <tr>
-          <td>In-product agent</td>
-          <td>None</td>
-          <td>Alyx exists. Currently a router; the prescription above is what would make it agentic.</td>
-        </tr>
-      </table>
+    <div class="editorial">
+      <p><code>create_code_evaluator()</code> takes two flavors. <code>ManagedCodeConfig</code> references one of 5 pre-built evaluators (regex, exact-match, json-parseable, keywords). Works on Free. <code>CustomCodeConfig</code> uploads a Python function for AX to execute server-side. Returns 400 on Free: "Custom code evals are not available for your account."</p>
+      <p>The Free plan marketing list says "Evals (Offline &amp; Online)" without qualifier. The actual gate is "managed evals only; bring-your-own-Python is paid." For the Tool Bypass scenario, that's the difference between shipping the eval as a registered code path or shipping it as a template (LLM-as-judge).</p>
+      <p><b>What I'd change.</b> One line in the Free-plan marketing copy. "Evals (managed primitives + LLM-as-judge templates; custom Python on paid)." Honest disclosure helps developers pick the right tier.</p>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">05 · Three SDK bugs in v8.22.1.</h3>
+
+    <div class="editorial">
+      <ul>
+        <li><b><code>experiments.list_runs</code> Pydantic deserialization fails on null IDs.</b> Response contains an ExperimentRun with <code>id: null</code>. Model declares <code>id: str</code> required. Every call fails. Reproduced twice.</li>
+        <li><b><code>evaluators.create_code_evaluator</code> raises post-create on <code>.version.id</code>.</b> Server creates the evaluator successfully (<code>evaluators.list</code> confirms). The SDK response object then errors when accessed. Same polymorphism shape as the <code>annotation_configs.list</code> bug.</li>
+        <li><b>Online task counters are inconsistent across calls.</b> During run: <code>err=14, skip=10</code>. After completion: <code>err=0, skip=24</code>. Same run id, two snapshots. Either the response returns counters from different timestamps, or the failure detail is lost on completion.</li>
+      </ul>
+      <p>All three are response-shape mismatches in alpha/beta APIs. Every SDK call emits a stderr <code>[ALPHA]</code>/<code>[BETA]</code> warning. For an enterprise customer wiring CI/CD against the Python client, the noise plus the bugs together are a real stability blocker.</p>
+    </div>
+
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">06 · Indexing latency.</h3>
+
+    <div class="editorial">
+      <p>Spans I shipped 24 hours ago appear in <code>export_to_df</code>. Spans I shipped in the last 6 hours return zero. Phoenix Cloud is near-realtime on the same workload. For someone debugging "did my span land," the Phoenix latency profile is meaningfully better.</p>
     </div>
   </div>
 </section>
@@ -654,14 +853,14 @@
 <!-- WHAT I'D PUSH ON -->
 <section class="body">
   <div class="container">
-    <div class="label">section 04 · what I'd push on</div>
+    <div class="label">section 05 · what I'd push on</div>
     <h2>Three things, in order of conviction.</h2>
 
     <div class="editorial">
       <ul>
-        <li><b>Trace-to-eval handoff in Phoenix should be one click, not a docs page.</b> Two clicks from "this trace looks suspicious" to "this eval said FAIL with this evidence" — or the eval library doesn't earn its place above the trace</li>
-        <li><b>Alyx needs a runtime grounding gate.</b> Tool Bypass at runtime, applied to Alyx's own action assertions, turns "trust me, the agent helped" into "here's why the agent's claim is grounded." Same primitive in OSS, lifted into runtime in AX — the composition that justifies the AX tier</li>
-        <li><b>Customer case studies need commercial framing.</b> Time-to-first-eval, percent-of-teams-adopted, weeks-to-second-product-line. Prospects should learn the buyer's outcome, not the buyer's stack</li>
+        <li><b>Make Alyx agentic, or warm-handoff with context.</b> Today it's a slower way to navigate. Two acceptable fixes: tool-call into the SDK on the user's behalf, or pre-fill the page it routes to with the conversation context. Both fixes ship the value the agent assistant promises.</li>
+        <li><b>Fix the Labeling Queue Save/Next bug.</b> Auto-save on Next, or combine the buttons. Silent data loss on the human-review surface is the most expensive bug shape this product can have. The reviewer is the customer's most expensive person; their work has to capture.</li>
+        <li><b>Pave the registered-evaluator-to-experiment bridge.</b> Add <code>LLMEvaluator.from_registered_prompt()</code> so the natural mental model ("register once, use everywhere") actually holds. The prompt registry is already the bridge; it just needs a one-liner helper.</li>
       </ul>
     </div>
   </div>

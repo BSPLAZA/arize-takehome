@@ -719,11 +719,11 @@
   <div class="container">
     <div class="eyebrow">the proposal</div>
     <h1>Tool Bypass.</h1>
-    <p class="sub">An eval primitive for Phoenix that catches a failure mode the existing library misses. I defined it, wrote the LLM-as-judge version in your repo's style, ran the regex variant against 169 historical DM turns from one of my agents (7 real phantoms, 4 false positives worth keeping), and re-ran it on 57 post-defense spans in Phoenix Cloud (zero phantoms, μ 1.00). It catches the bug where it exists and goes quiet once the agent's defenses ship.</p>
+    <p class="sub">An eval primitive that catches a failure mode the existing libraries miss. Audited 169 production turns from my agent (7 real phantoms, 4 false positives worth keeping). Ran the LLM-as-judge variant on 16 hand-graded boundary cases (14 of 16 across Sonnet 4.6 and Opus 4.7). Registered it on AX as a continuous evaluator scoring live spans.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
-      <div>2026-05-01</div>
-      <div>Reading time: 10–12 minutes</div>
+      <div>2026-05-04</div>
+      <div>Reading time: 10 minutes</div>
     </div>
   </div>
 </section>
@@ -909,7 +909,7 @@
       <ul>
         <li>32-line file follows <code>tool_invocation.py</code> and the eight other <code>ClassificationEvaluator</code> subclasses</li>
         <li>Three touch-point edits: <code>metrics/__init__.py</code> (+2), test fixture (+8), <code>README</code> (+1). One optional doc file</li>
-        <li>Trace context (sibling tool spans) passes via <code>eval_input</code> dict — same pattern as <code>tool_invocation</code>. No new interface needed</li>
+        <li>Trace context (sibling tool spans) passes via <code>eval_input</code> dict, same pattern as <code>tool_invocation</code>. No new interface needed</li>
       </ul>
     </div>
   </div>
@@ -974,7 +974,7 @@
     <div class="editorial">
       <ul>
         <li>v1 was regex over assistant content: <code>\d+\/16</code> for water counts, <code>\d+g</code> for protein grams</li>
-        <li>Caught all 7 phantoms — and 4 false positives, clustered into three precise failure modes</li>
+        <li>Caught all 7 phantoms. Also caught 4 false positives clustered into three precise failure modes.</li>
       </ul>
     </div>
 
@@ -997,44 +997,32 @@
       <ul>
         <li>All three FP classes ask the same question: is this assistant content actually claiming an action right now?</li>
         <li>Hypothesis: an LLM-as-judge handles this natively where a regex can't</li>
-        <li>Tested via Phoenix's <code>ClassificationEvaluator</code> against the 11 flagged + 5 grounded turns. Two judges spanning the cost/quality range: <strong>Sonnet 4.6</strong> and <strong>Haiku 4.5</strong>. Phoenix's <code>ToolSelectionEvaluator</code> as baseline</li>
+        <li>Curated a 16-case validation set (11 flagged turns plus 5 grounded turns) and ran four experiments against it. Tooling: Phoenix's <code>ClassificationEvaluator</code> for three of them, plus the off-the-shelf <code>FaithfulnessEvaluator</code> as the build-vs-buy baseline.</li>
       </ul>
     </div>
 
     <div class="editorial" style="margin-bottom: 8px;">
-      <p style="font-size: 16px; color: var(--muted); margin: 0;"><b style="color: var(--ink-2); font-weight: 500;">Caveat:</b> n=16 is a unit test, not a benchmark. Prompt was iterated on this set; I am the sole grader; CIs overlap. Directional signal about <em>which evaluator family</em> matches the problem shape, not a leaderboard.</p>
+      <p style="font-size: 16px; color: var(--muted); margin: 0;"><b style="color: var(--ink-2); font-weight: 500;">Caveat:</b> 16 cases is a unit test. The prompt was iterated on this set, I am the sole grader, confidence intervals overlap. Directional signal about which evaluator family fits the problem shape, not a leaderboard.</p>
     </div>
 
     <div class="audit-frame" style="margin-top: 8px;">
       <div class="topcaption">
-        <div class="stat tp"><b>14/16</b> LLM-judge Sonnet 4.6</div>
-        <div class="stat tp"><b>14/16</b> LLM-judge Opus 4.7 (errors flip to FN)</div>
-        <div class="stat"><b>13/16</b> regex</div>
-        <div class="stat"><b>12/16</b> Phoenix ToolSelection</div>
-        <div class="stat fp"><b>11/16</b> LLM-judge Haiku 4.5</div>
+        <div class="stat tp"><b>14/16</b> Sonnet 4.6 (v1 prompt)</div>
+        <div class="stat tp"><b>14/16</b> Sonnet 4.6 (v2 prompt, Prompt Registry)</div>
+        <div class="stat tp"><b>14/16</b> Opus 4.7 (v2 prompt)</div>
         <div class="stat fp"><b>9/16</b> Phoenix Faithfulness (untuned)</div>
       </div>
-      <table class="audit-table">
-        <thead>
-          <tr><th>#</th><th>case</th><th>regex</th><th>Sonnet</th><th>Haiku</th><th>truth</th><th>note</th></tr>
-        </thead>
-        <tbody>
-          <tr class="row-tp"><td>29</td><td class="snip">"got it, what day number is 4/16?"</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="judge">grounded</td><td class="judge">grounded</td><td class="note"><b>LLM win over regex.</b> Both judges correctly read "4/16" as a calendar date. The boundary case regex structurally can't crack.</td></tr>
-          <tr class="row-fp"><td>221</td><td class="snip">"171/170. done. 🎯"</td><td class="judge">grounded</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="note"><b>Haiku-specific false-negative.</b> Tool fired. Haiku wanted span-level proof the user reached 171/170; Sonnet inferred the state from the action.</td></tr>
-          <tr class="row-fp"><td>216</td><td class="snip">"done, 16/16 💧"</td><td class="judge">grounded</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="note"><b>Same Haiku pattern.</b> Cost/quality tradeoff: smaller models can't bridge "tool fired" to "goal state reached" without explicit tool-result context.</td></tr>
-          <tr class="row-tp"><td>162</td><td class="snip">"those are already logged for day 7 (you hit 170g there)"</td><td class="judge">phantom</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="judge">phantom</td><td class="note">Subtle phantom-recall mix. Sonnet correctly held the audit's verdict; Haiku misread as pure recall.</td></tr>
-          <tr class="row-tp"><td>194</td><td class="snip">"actually wait, glitch on my end. nothing got logged"</td><td class="judge">phantom</td><td class="judge">phantom</td><td class="judge">phantom</td><td class="judge">grounded</td><td class="note"><b>All three miss FP class B.</b> The v50 self-correction echoes the phantom snippet inside the apology. The prompt's boundary-case bullet about "quoted historical claims" needs sharpening.</td></tr>
-        </tbody>
-      </table>
     </div>
 
-    <div class="editorial" style="margin-top: 24px;">
+    <div class="editorial" style="margin-top: 28px;">
       <ul>
-        <li><b>Headline:</b> Sonnet beats regex. Haiku loses. ToolSelection 12/16, misses the same two boundary cases Sonnet handles</li>
-        <li><b>Deployment:</b> regex as pre-filter, Sonnet as adjudicator, Opus as ensemble (errors flip to false-negatives, which cost more)</li>
-        <li><b>Build-vs-buy:</b> Phoenix <code>FaithfulnessEvaluator</code> = <strong>9/16</strong>. Catches phantoms but false-flags 7 of 9 grounded. Structural — lacks trace-aware boundary scaffolding</li>
-        <li><b>Landscape:</b> LangSmith / Langfuse / Braintrust / Weave ship custom-eval runners. None ship this primitive built-in</li>
-        <li><b>Wedge customer:</b> finance ops, healthcare, refund agents, compliance copilots, CRM automation — teams already asking "what fraction of our agent's claims are grounded?"</li>
+        <li><b>Headline.</b> The 14/16 ceiling holds across Sonnet 4.6, the v2-prompt variant, and Opus 4.7. Pushing the prompt into the Prompt Registry with explicit boundary-case guidance moved the explanations the judge wrote, not the score. The two cases each model misses shift across runs; the ceiling holds.</li>
+        <li><b>Build-vs-buy.</b> Phoenix's <code>FaithfulnessEvaluator</code> scores 9 of 16 untuned. It catches the phantoms but false-flags grounded cases the boundary-case prompt is explicitly written for. The 9 to 14 jump is what a Tool-Bypass-specific evaluator buys.</li>
+        <li><b>Same prompt, different platform.</b> The same Sonnet 4.6 prompt, ported to AX via the registered-prompt-plus-hand-rolled-bridge pattern, scored 13 of 16. AX's experiment runner hands you a raw <code>task(input)</code> callable; Phoenix's <code>ClassificationEvaluator</code> constrains the verdict to a fixed choice set. The platform's experiment scaffolding is itself part of the eval.</li>
+        <li><b>Latency.</b> Opus is roughly 25% faster than Sonnet on this task. 2.8s p50 versus 3.8s on the same dataset.</li>
+        <li><b>Deployment.</b> Regex as a cheap pre-filter, the LLM judge as adjudicator, Labeling Queues to route disagreement to a human reviewer.</li>
+        <li><b>Landscape.</b> LangSmith, Langfuse, Braintrust, and Weave ship custom-eval runners. None of them ship Tool Bypass as a built-in primitive today.</li>
+        <li><b>Wedge customers.</b> Finance ops, healthcare, refund agents, compliance copilots, CRM automation. Teams that already ask the question "what fraction of our agent's claims are grounded?"</li>
       </ul>
     </div>
   </div>
@@ -1069,7 +1057,7 @@
         <li><strong>Pure rule-based detector (regex / span-graph walk), no LLM.</strong> Cheaper, deterministic, no API spend. v1 was this. It topped out at 13/16 on the validation set with three structural failure modes (date collisions, self-quoting corrections, partial-match context loss) that aren't fixable by tighter regex. Ships as the cheap pre-filter in production, but isn't the eval primitive</li>
         <li><strong>Embedding-based "claim/action mismatch" similarity.</strong> Train a classifier on (assistant span, tool-span summary) pairs. Rejected for proposal scope: needs a labeled set of 1000+, takes weeks to build, and the cold-start cost is what the LLM-judge already pays in inference. Worth revisiting if eval volume hits the cost-curve breakpoint</li>
         <li><strong>Span-attribute schema enforcement (require an <code>action_grounded</code> attribute on every assistant span at instrumentation time).</strong> Pushes the burden onto the SDK and the customer's instrumentation. The whole point of Phoenix is "we read your existing traces." A new attribute requirement is a customer-onboarding tax</li>
-        <li><strong>eBPF / agent-side runtime enforcement.</strong> Catch the bug at the source: block the assistant turn from leaving until grounding is verified. Out of scope for an eval primitive — that's an SDK + agent-runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question</li>
+        <li><strong>eBPF or agent-side runtime enforcement.</strong> Catch the bug at the source: block the assistant turn from leaving until grounding is verified. Out of scope for an eval primitive. That's an SDK plus agent-runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question.</li>
       </ul>
     </div>
   </div>
@@ -1079,14 +1067,13 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 08 · what next</div>
-    <h2>Where this lands on the AX surface needs two scoping conversations.</h2>
+    <h2>The runtime story already works on AX. The roadmap is about scaling it.</h2>
 
     <div class="editorial">
       <ul>
-        <li>Tool bypass <strong>at batch</strong> is clearly a Phoenix story — the eval is already running</li>
-        <li>Tool bypass <strong>at runtime</strong> is plausibly an Alyx story (Alyx makes action claims about a customer's AI app every time it runs)</li>
-        <li>I haven't seen the Alyx response-path internals, so a 30-day runtime ship would be a guess I'd rather not make</li>
-        <li>The 30-day commit below is a <strong>decision date, not a ship date</strong></li>
+        <li><strong>Batch is shipped.</strong> The evaluator runs against the Phoenix workspace and the AX project as a Phoenix Experiment and an AX experiment, respectively. Verified scores in section 05.</li>
+        <li><strong>Runtime is shipped on AX.</strong> Registered the evaluator as a continuous online task (<code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code>). 11 of 24 live spans scored, zero errors. Future spans get scored automatically.</li>
+        <li><strong>Alyx tool-call runtime is the unshipped one.</strong> Alyx today is a router (see <a href="feedback.html#section-04">/feedback section 04</a>). Once Alyx tool-calls into the SDK on the user's behalf, Tool Bypass becomes the natural grounding gate on Alyx's own action claims. That depends on the Alyx product roadmap, not on the eval.</li>
       </ul>
     </div>
 
@@ -1094,29 +1081,29 @@
       <div class="rm-row committed">
         <div class="when">30 days</div>
         <div class="what">
-          <b>Decide: Alyx runtime gate, AX batch metric, or both?</b> Two weeks with the Alyx team and the AX product owner to scope: latency budget for a single LLM-judge call in the Alyx response path, routing decision (every assertion, sampled, or only on assertions matching a pre-filter), and the AX-customer cohort that already cares enough to instrument. By day 14: a written decision, a cost model, a one-page spec. The eval itself ports cleanly from the Phoenix fork either way.
+          <b>Promote the AX online task to a customer-facing template.</b> The technical work is done: registered evaluator, continuous task wiring, 11 of 24 live spans scored. What's needed is the productization. A template entry under "Built-in Evaluators &gt; Agent Failure Class &gt; Tool Bypass" with a one-click "register and run" CTA. Two weeks with the AX product owner to scope the surface: which customer cohort gets it, what the configuration UI looks like, what gets pre-filled.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">60 days</div>
         <div class="what">
-          <b>Phoenix OSS contribution.</b> Open the conversation with your eval team about merging the fork upstream. The work is done (YAML, evaluator class, MockLLM tests, README row). It signals "we run the same eval our customers can run." Useful as adoption fuel for the Alyx work above, not as the work itself.
+          <b>Phoenix OSS contribution.</b> Open the conversation with the eval team about merging the fork upstream. The work is done: YAML config, evaluator class, parametrized tests aligned to the existing 8 ClassificationEvaluator subclasses, 241 lines total. Useful as adoption fuel for the AX surface above; the OSS path lets non-AX customers ship the same eval.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">90 days</div>
         <div class="what">
-          <b>Eval-as-gate, composing across pillars.</b> Tool bypass plus handoff coverage plus memory pressure, surfaced as a pre-deploy gate in CI/CD. The three primitives should compose; right now they don't share a substrate. Composing them is the contribution, not the individual evals.
+          <b>Compose with the next primitive.</b> Tool Bypass catches assertions without tool calls. Handler Bypass (see <a href="agent.html#section-05">/agent section 05</a>) catches messages that never reached the LLM. Both belong to the same agent-failure taxonomy. Adding Handler Bypass as a sibling primitive, then surfacing both as a pre-deploy gate in CI/CD, is the next composition. The two evaluators don't currently share a substrate. Composing them is the contribution.
         </div>
       </div>
     </div>
 
     <div class="rm-aside">
-      <b>What's missing from this proposal that I'd want to discuss:</b> the Copilot surface. Tool bypass behavior in Copilot's debug interface (where Copilot summarizes traces and findings for the user) has a different shape than Alyx runtime. I haven't done the analysis to know whether that's a separate primitive or the same one. That's a Tuesday conversation, not a roadmap commitment.
+      <b>The Alyx question.</b> Once Alyx becomes agentic (tool-call into the SDK rather than route to a page), Tool Bypass at runtime applied to Alyx's own action assertions is the natural composition. Latency budget for a single LLM-judge call in the Alyx response path, routing decision (every assertion, sampled, or only on those matching a pre-filter), and the cost model are scoping conversations rather than guesses. They get easier the moment the Alyx product roadmap names a tool-calling milestone.
     </div>
 
     <div class="rm-aside" style="border-left-color: var(--accent);">
-      <b>The question I'd ask before committing:</b> Where does your eval team want this to live? My fork is a feasibility check, not a product decision.
+      <b>The question I'd ask before committing.</b> Where does the eval team want this to live? The Phoenix fork is a feasibility check; the AX online task is a working pilot. Both ports exist. The product call is which one becomes the customer-facing template first.
     </div>
   </div>
 </section>

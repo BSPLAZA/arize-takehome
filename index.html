@@ -521,7 +521,7 @@
         <div class="span-id"><span class="num">02</span><br>span.feedback</div>
         <div class="body">
           <h3>Field notes from instrumenting</h3>
-          <p>Specific moments where Phoenix and AX worked, and where they didn't. An editorial essay rather than a feature comparison table.</p>
+          <p>I started with Phoenix, switched to AX, drove both end-to-end. What pulled me over, what worked, and what broke. Headline finding: Alyx is a router, not an agent.</p>
         </div>
         <div class="arrow">→</div>
       </a>
@@ -529,7 +529,7 @@
         <div class="span-id"><span class="num">03</span><br>span.proposal</div>
         <div class="body">
           <h3>Tool Bypass: an eval primitive</h3>
-          <p>A failure-class taxonomy, a precise definition, real audit data over 169 turns, and a roadmap that names what would invalidate it.</p>
+          <p>A failure-class taxonomy, a precise definition, an audit of 169 production turns, four Phoenix experiments, and a continuous online task on AX scoring live spans.</p>
         </div>
         <div class="arrow">→</div>
       </a>
@@ -544,21 +544,23 @@
     </div>
     <div class="body-block">
       <aside class="marginalia">
-        <b>Failure class:</b><br>tool bypass<br>
+        <b>Failure class:</b><br>tool bypass
         <div class="div"></div>
-        <b>Detection method:</b><br>regex first, LLM-as-judge planned
+        <b>Detection:</b><br>regex pre-filter<br>LLM-as-judge adjudicator<br>(running on live AX spans)
         <div class="div"></div>
-        <b>Sample:</b><br>169 production turns<br>30 days, pre-v50 historical<br>
+        <b>Audit sample:</b><br>169 production turns<br>30 days, pre-defense<br>
         <div class="div"></div>
-        <b>Result:</b><br>7 real / 4 false positives<br>
+        <b>Audit result:</b><br>7 real phantoms<br>4 false positives
         <div class="div"></div>
-        <b>Fork status:</b><br>private, matched to your patterns<br>not a PR
+        <b>Eval validation:</b><br>14 of 16 boundary cases<br>across Sonnet 4.6 + Opus 4.7
+        <div class="div"></div>
+        <b>Live runtime:</b><br>11 of 24 AX spans scored<br>continuous task, zero errors
       </aside>
       <div class="editorial">
         <div class="first">
-          <p>Existing Phoenix evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em>, wrote an eval matching Phoenix's existing module patterns, and ran it against <b>169 real production turns</b>: <b>7 real phantoms</b>, <b>4 false positives</b>.</p>
+          <p>Existing Phoenix and AX evals catch hallucination and wrong-tool-selection. They <span class="underline-accent">don't catch</span> an agent that asserts an action without firing the tool. I named the class <em>tool bypass</em>, wrote an eval matching Phoenix's existing module patterns, and ran it against <b>169 real production turns</b>: <b>7 real phantoms</b>, <b>4 false positives</b>.</p>
         </div>
-        <p>The 30-day commit is an <b>Alyx runtime <em>decision</em></b> — latency budget, routing surface, build vs configure — not a ship date. Where on the AX surface this primitive lives is a question to settle with your eval team first.</p>
+        <p>The runtime story is already shipped on AX. The eval registers as a continuous online task, scores every Anthropic span automatically, and surfaces the verdict in the trace UI. The 30-day commit is about productizing the surface for AX customers, not about whether the eval works.</p>
       </div>
     </div>
   </div>
