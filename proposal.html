@@ -719,11 +719,11 @@
   <div class="container">
     <div class="eyebrow">the proposal</div>
     <h1>Tool Bypass.</h1>
-    <p class="sub">An eval primitive that catches a failure mode the existing libraries miss. Audited 169 production turns from my agent (7 real phantoms, 4 false positives worth keeping). Ran the LLM-as-judge variant on 16 hand-graded boundary cases (14 of 16 across Sonnet 4.6 and Opus 4.7). Registered it on AX as a continuous evaluator scoring live spans.</p>
+    <p class="sub">An eval primitive for the failure mode existing libraries miss. Audited on 169 production turns; registered as a continuous evaluator.</p>
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-04</div>
-      <div>Reading time: 10 minutes</div>
+      <div>Reading time: 6 minutes</div>
     </div>
   </div>
 </section>
@@ -791,19 +791,19 @@
       <div class="axis axis-y">Knowledge claim</div>
       <div class="tcell">
         <div class="name">RAG hallucination</div>
-        <div class="eval"><span class="check">✓</span> Phoenix Hallucination Eval</div>
+        <div class="eval"><span class="check">✓</span> Phoenix <code>HallucinationEvaluator</code></div>
         <div class="ex">"This article says X" but the retrieved passage doesn't.</div>
       </div>
       <div class="tcell">
         <div class="name">Factuality drift</div>
-        <div class="eval"><span class="check">✓</span> Phoenix Q&amp;A Eval</div>
+        <div class="eval"><span class="check">✓</span> Phoenix <code>CorrectnessEvaluator</code></div>
         <div class="ex">"The capital of France is Berlin." Verifiable, batch.</div>
       </div>
 
       <div class="axis axis-y">Action claim</div>
       <div class="tcell">
         <div class="name">Wrong tool / wrong args</div>
-        <div class="eval"><span class="check">✓</span> Phoenix Function Call Eval</div>
+        <div class="eval"><span class="check">✓</span> Phoenix <code>ToolSelectionEvaluator</code></div>
         <div class="ex">Called <span style="font-family:var(--mono); font-style: normal;">set_book</span> when user said "I ate chicken."</div>
       </div>
       <div class="tcell gap">
@@ -919,13 +919,12 @@
 <section class="body dim">
   <div class="container">
     <div class="label">section 04 · the spreadsheet</div>
-    <h2>Run on 169 real production turns. Form your own opinion.</h2>
+    <h2>169 production turns, audited.</h2>
 
     <div class="editorial" style="margin-bottom: 24px;">
       <ul>
-        <li>Pulled the agent's database, ran the eval over 30 days of conversation logs, hand-graded every flagged turn</li>
-        <li><strong>Sample shape:</strong> 169 turns, 5 active users, ~30 sessions over 30 days</li>
-        <li>The 7 true positives represent 4 distinct phantom episodes (rows 1–2 = Apr 22 protein session; rows 3–5 = Apr 23 cross-day session; rows 6–7 = independent same-day water phantoms across users)</li>
+        <li>30 days, 5 users, every flagged turn hand-graded</li>
+        <li>The 7 phantoms cluster into 4 episodes: Apr 22 protein session, Apr 23 cross-day session, two independent water phantoms across users</li>
       </ul>
     </div>
 
@@ -1016,64 +1015,49 @@
 
     <div class="editorial" style="margin-top: 28px;">
       <ul>
-        <li><b>Headline.</b> The 14/16 ceiling holds across Sonnet 4.6, the v2-prompt variant, and Opus 4.7. Pushing the prompt into the Prompt Registry with explicit boundary-case guidance moved the explanations the judge wrote, not the score. The two cases each model misses shift across runs; the ceiling holds.</li>
-        <li><b>Build-vs-buy.</b> Phoenix's <code>FaithfulnessEvaluator</code> scores 9 of 16 untuned. It catches the phantoms but false-flags grounded cases the boundary-case prompt is explicitly written for. The 9 to 14 jump is what a Tool-Bypass-specific evaluator buys.</li>
-        <li><b>Same prompt, different platform.</b> The same Sonnet 4.6 prompt, ported to AX via the registered-prompt-plus-hand-rolled-bridge pattern, scored 13 of 16. AX's experiment runner hands you a raw <code>task(input)</code> callable; Phoenix's <code>ClassificationEvaluator</code> constrains the verdict to a fixed choice set. The platform's experiment scaffolding is itself part of the eval.</li>
-        <li><b>Latency.</b> Opus is roughly 25% faster than Sonnet on this task. 2.8s p50 versus 3.8s on the same dataset.</li>
-        <li><b>Deployment.</b> Regex as a cheap pre-filter, the LLM judge as adjudicator, Labeling Queues to route disagreement to a human reviewer.</li>
-        <li><b>Landscape.</b> LangSmith, Langfuse, Braintrust, and Weave ship custom-eval runners. None of them ship Tool Bypass as a built-in primitive today.</li>
-        <li><b>Wedge customers.</b> Finance ops, healthcare, refund agents, compliance copilots, CRM automation. Teams that already ask the question "what fraction of our agent's claims are grounded?"</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ───────────────── ARCHITECTURE ───────────────── -->
-<section class="body dim">
-  <div class="container">
-    <div class="label">section 06 · where it plugs in</div>
-    <h2>One file, one registration, one test fixture.</h2>
-
-    <div class="editorial">
-      <ul>
-        <li>YAML prompt config under <code>prompts/classification_evaluator_configs/</code></li>
-        <li>Short evaluator class under <code>metrics/</code>, following the <code>tool_invocation.py</code> pattern</li>
-        <li>Three reference cases (clean, phantom, 4/16 collision) added to the parametrized test fixture against Phoenix's <code>MockLLM</code></li>
-        <li>Sketched in the fork. Wiring is the easy part once the design is settled</li>
+        <li><b>The ceiling holds across models and prompts.</b> Pushing the prompt into the Prompt Registry with boundary-case guidance moved the explanations the judge wrote, not the score. The two missed cases shift between runs.</li>
+        <li><b>Tool-Bypass-specific beats off-the-shelf 14 to 9.</b> Faithfulness catches the phantoms but false-flags grounded cases the boundary-case prompt is explicitly written for.</li>
+        <li><b>Same prompt scores differently across platforms.</b> Phoenix 14 of 16, AX 13 of 16. Phoenix's <code>ClassificationEvaluator</code> constrains the verdict; AX's experiment runner doesn't. Scaffolding is part of the eval.</li>
+        <li><b>The wedge.</b> Finance ops, healthcare, refund agents, compliance copilots. Teams already asking "what fraction of our agent's claims are grounded?"</li>
       </ul>
     </div>
   </div>
 </section>
 
 <!-- ───────────────── ALTERNATIVES ───────────────── -->
-<section class="body">
+<section class="body dim">
   <div class="container">
-    <div class="label">section 07 · alternatives considered</div>
+    <div class="label">section 06 · alternatives considered</div>
     <h2>The shapes I rejected, and why.</h2>
 
     <div class="editorial">
       <ul>
-        <li><strong>Just extend <code>FaithfulnessEvaluator</code> with a "trace-aware" mode flag.</strong> Tempting because it adds one parameter, no new class. Rejected because the input shape differs (action claim vs. context window), the boundary cases are different (date collisions, self-corrections, quoted history), and a flag overload buries the failure class users would search for. Sibling evaluator costs +32 lines; mode-on-Faithfulness costs every Faithfulness user one more decision</li>
-        <li><strong>Pure rule-based detector (regex / span-graph walk), no LLM.</strong> Cheaper, deterministic, no API spend. v1 was this. It topped out at 13/16 on the validation set with three structural failure modes (date collisions, self-quoting corrections, partial-match context loss) that aren't fixable by tighter regex. Ships as the cheap pre-filter in production, but isn't the eval primitive</li>
-        <li><strong>Embedding-based "claim/action mismatch" similarity.</strong> Train a classifier on (assistant span, tool-span summary) pairs. Rejected for proposal scope: needs a labeled set of 1000+, takes weeks to build, and the cold-start cost is what the LLM-judge already pays in inference. Worth revisiting if eval volume hits the cost-curve breakpoint</li>
-        <li><strong>Span-attribute schema enforcement (require an <code>action_grounded</code> attribute on every assistant span at instrumentation time).</strong> Pushes the burden onto the SDK and the customer's instrumentation. The whole point of Phoenix is "we read your existing traces." A new attribute requirement is a customer-onboarding tax</li>
-        <li><strong>eBPF or agent-side runtime enforcement.</strong> Catch the bug at the source: block the assistant turn from leaving until grounding is verified. Out of scope for an eval primitive. That's an SDK plus agent-runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question.</li>
+        <li><strong>Extend <code>FaithfulnessEvaluator</code> with a "trace-aware" mode flag.</strong> Buries the failure class behind an option. Sibling evaluator costs 32 lines; mode-on-Faithfulness costs every Faithfulness user one more decision.</li>
+        <li><strong>Pure regex or span-graph walk, no LLM.</strong> v1 was this. Topped out at 13 of 16 with structural failures (date collisions, self-quoting corrections) that tighter regex can't fix. Ships as the pre-filter, not the primitive.</li>
+        <li><strong>eBPF or agent-side runtime enforcement.</strong> Out of scope. That's an SDK plus runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question.</li>
       </ul>
+      <details style="margin-top: 16px;">
+        <summary style="font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;">+ two narrower options I rejected</summary>
+        <ul style="margin-top: 12px;">
+          <li><strong>Embedding-based "claim/action mismatch" classifier.</strong> Needs a labeled set of 1000+. Cold-start cost matches what the LLM-judge already pays in inference. Worth revisiting at the cost-curve breakpoint.</li>
+          <li><strong>Span-attribute schema enforcement.</strong> Require an <code>action_grounded</code> attribute on every assistant span at instrumentation time. A new required attribute is a customer-onboarding tax.</li>
+        </ul>
+      </details>
     </div>
   </div>
 </section>
 
 <!-- ───────────────── ROADMAP ───────────────── -->
-<section class="body dim">
+<section class="body">
   <div class="container">
-    <div class="label">section 08 · what next</div>
+    <div class="label">section 07 · what next</div>
     <h2>The runtime story already works on AX. The roadmap is about scaling it.</h2>
 
     <div class="editorial">
       <ul>
         <li><strong>Batch is shipped.</strong> The evaluator runs against the Phoenix workspace and the AX project as a Phoenix Experiment and an AX experiment, respectively. Verified scores in section 05.</li>
         <li><strong>Runtime is shipped on AX.</strong> Registered the evaluator as a continuous online task (<code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code>). 11 of 24 live spans scored, zero errors. Future spans get scored automatically.</li>
-        <li><strong>Alyx tool-call runtime is the unshipped one.</strong> Alyx today is a router (see <a href="feedback.html#section-04">/feedback section 04</a>). Once Alyx tool-calls into the SDK on the user's behalf, Tool Bypass becomes the natural grounding gate on Alyx's own action claims. That depends on the Alyx product roadmap, not on the eval.</li>
+        <li><strong>Alyx tool-call runtime is the unshipped one.</strong> Alyx today is a router (see <a href="feedback.html">/feedback</a>). Once Alyx tool-calls into the SDK on the user's behalf, Tool Bypass becomes the natural grounding gate. That's a product-roadmap question, not an eval question.</li>
       </ul>
     </div>
 
@@ -1081,29 +1065,25 @@
       <div class="rm-row committed">
         <div class="when">30 days</div>
         <div class="what">
-          <b>Promote the AX online task to a customer-facing template.</b> The technical work is done: registered evaluator, continuous task wiring, 11 of 24 live spans scored. What's needed is the productization. A template entry under "Built-in Evaluators &gt; Agent Failure Class &gt; Tool Bypass" with a one-click "register and run" CTA. Two weeks with the AX product owner to scope the surface: which customer cohort gets it, what the configuration UI looks like, what gets pre-filled.
+          <b>Promote the working AX task to a customer-facing template.</b> Two weeks with the AX product owner to scope the surface, configuration UI, and which cohort gets it. The technical work is done; what's needed is productization.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">60 days</div>
         <div class="what">
-          <b>Phoenix OSS contribution.</b> Open the conversation with the eval team about merging the fork upstream. The work is done: YAML config, evaluator class, parametrized tests aligned to the existing 8 ClassificationEvaluator subclasses, 241 lines total. Useful as adoption fuel for the AX surface above; the OSS path lets non-AX customers ship the same eval.
+          <b>Phoenix OSS contribution.</b> Open the conversation about merging the fork. The path is open for teams not on AX to ship the same eval, and the OSS profile is adoption fuel for the AX surface.
         </div>
       </div>
       <div class="rm-row">
         <div class="when">90 days</div>
         <div class="what">
-          <b>Compose with the next primitive.</b> Tool Bypass catches assertions without tool calls. Handler Bypass (see <a href="agent.html#section-05">/agent section 05</a>) catches messages that never reached the LLM. Both belong to the same agent-failure taxonomy. Adding Handler Bypass as a sibling primitive, then surfacing both as a pre-deploy gate in CI/CD, is the next composition. The two evaluators don't currently share a substrate. Composing them is the contribution.
+          <b>Compose with Handler Bypass.</b> Tool Bypass catches assertions without tool calls. Handler Bypass catches messages that never reach the LLM. Same taxonomy. Adding the sibling primitive and surfacing both as a pre-deploy gate is the next composition.
         </div>
       </div>
     </div>
 
-    <div class="rm-aside">
-      <b>The Alyx question.</b> Once Alyx becomes agentic (tool-call into the SDK rather than route to a page), Tool Bypass at runtime applied to Alyx's own action assertions is the natural composition. Latency budget for a single LLM-judge call in the Alyx response path, routing decision (every assertion, sampled, or only on those matching a pre-filter), and the cost model are scoping conversations rather than guesses. They get easier the moment the Alyx product roadmap names a tool-calling milestone.
-    </div>
-
     <div class="rm-aside" style="border-left-color: var(--accent);">
-      <b>The question I'd ask before committing.</b> Where does the eval team want this to live? The Phoenix fork is a feasibility check; the AX online task is a working pilot. Both ports exist. The product call is which one becomes the customer-facing template first.
+      <b>The question I'd ask before committing.</b> Where does the eval team want this to live? The Phoenix fork is a feasibility check; the AX task is a working pilot. The product call is which becomes the template first.
     </div>
   </div>
 </section>

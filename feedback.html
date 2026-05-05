@@ -554,7 +554,7 @@
     <div class="byline">
       <div><b>Bryan Plaza</b></div>
       <div>2026-05-04</div>
-      <div>Reading time: 6 minutes</div>
+      <div>Reading time: 5 minutes</div>
     </div>
   </div>
 </section>
@@ -691,76 +691,14 @@
   </div>
 </section>
 
-<!-- AX WINS -->
-<section class="body">
-  <div class="container">
-    <div class="label">section 03 · what's better on ax</div>
-    <h2>What pulled me over.</h2>
-
-    <div class="editorial">
-      <p>Seven things AX does that Phoenix doesn't, drawn from the same week of side-by-side use. Hover any card for the concrete delta.</p>
-    </div>
-
-    <div class="diagram">
-      <div class="dgm-caption">ax wins · hover any card</div>
-      <div class="wins-grid">
-        <div class="win tip-host">
-          <div class="wn">free plan</div>
-          <div class="wt">Generous and honest</div>
-          <div class="wd">25k spans, 1 GB, 15-day retention. Includes Alyx, Monitors, Dashboards, Playgrounds, Labeling Queues. Phoenix Cloud has no equivalent free SaaS tier with the agent assistant.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">cost tracking</div>
-          <div class="wt">Auto on every LLM span</div>
-          <div class="wd"><code>attributes.llm.cost.prompt</code>, <code>.completion</code>, <code>.total</code> on every span out of the box. Phoenix doesn't surface cost without manual computation downstream.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">ai integrations</div>
-          <div class="wt">One key, every surface</div>
-          <div class="wd">Set up Anthropic once at the org level. Every evaluator and prompt references it. Phoenix passes credentials per call, which is friction at scale.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">prompt registry</div>
-          <div class="wt">Versioned, with labels</div>
-          <div class="wd">Required <code>commit_message</code> on every create. Pull by version or by label (<code>production</code>, <code>staging</code>). Tested the full promote-then-rollback flow. Phoenix has prompts but no first-class label workflow.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">online tasks</div>
-          <div class="wt">First-class continuous eval</div>
-          <div class="wd"><code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code> wires an evaluator to a project's stream. I scored 11 of 24 live spans with my Tool Bypass evaluator, zero errors. Phoenix has the parts; the wire-up is more manual.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">agent topology</div>
-          <div class="wt">Graph as a span attribute</div>
-          <div class="wd"><code>graph.node.id</code> + <code>graph.node.parent_id</code> render as an interactive graph view. Phoenix has no equivalent for visualizing multi-agent orchestration.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">labeling queues</div>
-          <div class="wt">Human review, first-class</div>
-          <div class="wd">Full review workflow with email-based reviewer assignment, instructions, per-record routing. Phoenix has no equivalent UI for routing disputed cases to a human.</div>
-        </div>
-        <div class="win tip-host">
-          <div class="wn">managed primitives</div>
-          <div class="wt">Lightweight evals as entities</div>
-          <div class="wd"><code>MatchesRegex</code>, <code>JsonParseable</code>, <code>ContainsAnyKeyword</code>, <code>ContainsAllKeywords</code>. Surfaced as registered, configurable, versioned objects. Phoenix has these too but doesn't elevate them.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="meta-note">
-      <b>The free plan is published and clear.</b> 25k spans per month, 1 GB ingest, 15-day retention, with Alyx, Online Evals, and Monitors included on the public pricing page. A solo builder can stand up AX end-to-end without filling out a sales form.
-    </div>
-  </div>
-</section>
-
 <!-- AX GAPS -->
 <section class="body dim">
   <div class="container">
-    <div class="label">section 04 · what broke on ax</div>
+    <div class="label">section 03 · what broke on ax</div>
     <h2>Honest report from inside the workspace.</h2>
 
     <div class="editorial">
-      <p>Five gaps, in order of impact. Headline first: Alyx is a router, not an agent.</p>
+      <p>Six items, in order of impact. Headline first: Alyx is a router, not an agent.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 36px 0 10px; color: var(--ink); letter-spacing: -0.012em;">01 · Alyx is a router, not an agent.</h3>
@@ -831,21 +769,16 @@
       <p><b>What I'd change.</b> One line in the Free-plan marketing copy. "Evals (managed primitives + LLM-as-judge templates; custom Python on paid)." Honest disclosure helps developers pick the right tier.</p>
     </div>
 
-    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">05 · Three SDK bugs in v8.22.1.</h3>
+    <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">05 · API maturity is uneven.</h3>
 
     <div class="editorial">
-      <ul>
-        <li><b><code>experiments.list_runs</code> Pydantic deserialization fails on null IDs.</b> Response contains an ExperimentRun with <code>id: null</code>. Model declares <code>id: str</code> required. Every call fails. Reproduced twice.</li>
-        <li><b><code>evaluators.create_code_evaluator</code> raises post-create on <code>.version.id</code>.</b> Server creates the evaluator successfully (<code>evaluators.list</code> confirms). The SDK response object then errors when accessed. Same polymorphism shape as the <code>annotation_configs.list</code> bug.</li>
-        <li><b>Online task counters are inconsistent across calls.</b> During run: <code>err=14, skip=10</code>. After completion: <code>err=0, skip=24</code>. Same run id, two snapshots. Either the response returns counters from different timestamps, or the failure detail is lost on completion.</li>
-      </ul>
-      <p>All three are response-shape mismatches in alpha/beta APIs. Every SDK call emits a stderr <code>[ALPHA]</code>/<code>[BETA]</code> warning. For an enterprise customer wiring CI/CD against the Python client, the noise plus the bugs together are a real stability blocker.</p>
+      <p>The SDK methods my workflow needed (<code>experiments.list_runs</code>, <code>evaluators.create_code_evaluator</code>, <code>tasks.list_runs</code>) all exist, all are decorated with <code>@prerelease_endpoint(stage=ReleaseStage.ALPHA)</code> or <code>BETA</code>, and every call to them prints a stderr warning. Writing a CI/CD pipeline against these APIs means accepting that response shapes can change. The opportunity is making the BETA-graduation path more visible to users, with a stability guarantee or a sunset notice when one moves.</p>
     </div>
 
     <h3 style="font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 44px 0 10px; color: var(--ink); letter-spacing: -0.012em;">06 · Indexing latency.</h3>
 
     <div class="editorial">
-      <p>Spans I shipped 24 hours ago appear in <code>export_to_df</code>. Spans I shipped in the last 6 hours return zero. Phoenix Cloud is near-realtime on the same workload. For someone debugging "did my span land," the Phoenix latency profile is meaningfully better.</p>
+      <p>Trace ingestion has a noticeable indexing delay before spans become queryable via the SDK. Phoenix Cloud is near-realtime on the same workload. For someone debugging "did my span land," that gap is felt fast.</p>
     </div>
   </div>
 </section>
@@ -853,7 +786,7 @@
 <!-- WHAT I'D PUSH ON -->
 <section class="body">
   <div class="container">
-    <div class="label">section 05 · what I'd push on</div>
+    <div class="label">section 04 · what I'd push on</div>
     <h2>Three things, in order of conviction.</h2>
 
     <div class="editorial">
