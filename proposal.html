@@ -876,11 +876,11 @@
     <div class="code-frame">
       <div class="filebar">
         <span>packages/phoenix-evals/src/phoenix/evals/metrics/tool_bypass.py</span>
-        <span class="langtag">PYTHON · 32 LINES</span>
+        <span class="langtag">PYTHON · CORE CLASS</span>
       </div>
 <pre><span class="k">from</span> <span class="m">phoenix.evals.evaluators</span> <span class="k">import</span> <span class="n">ClassificationEvaluator</span>
-<span class="k">from</span> <span class="m">phoenix.evals.templating</span> <span class="k">import</span> <span class="n">PromptTemplate</span>
-<span class="k">from</span> <span class="m">phoenix.evals.__generated__.classification_evaluator_configs.</span><span class="m">_tool_bypass_classification_evaluator_config</span> <span class="k">import</span> (
+<span class="k">from</span> <span class="m">phoenix.evals.llm.prompts</span> <span class="k">import</span> <span class="n">PromptTemplate</span>
+<span class="k">from</span> <span class="m">phoenix.evals.__generated__.classification_evaluator_configs</span> <span class="k">import</span> (
     <span class="n">TOOL_BYPASS_CLASSIFICATION_EVALUATOR_CONFIG</span> <span class="k">as</span> <span class="n">CONFIG</span>,
 )
 
@@ -907,8 +907,7 @@
 
     <div class="editorial">
       <ul>
-        <li>32-line file follows <code>tool_invocation.py</code> and the eight other <code>ClassificationEvaluator</code> subclasses</li>
-        <li>Three touch-point edits: <code>metrics/__init__.py</code> (+2), test fixture (+8), <code>README</code> (+1). One optional doc file</li>
+        <li>Class follows <code>tool_invocation.py</code> and the eight other <code>ClassificationEvaluator</code> subclasses. The full file (with docstring + input schema) is ~100 lines</li>
         <li>Trace context (sibling tool spans) passes via <code>eval_input</code> dict, same pattern as <code>tool_invocation</code>. No new interface needed</li>
       </ul>
     </div>
@@ -1032,8 +1031,8 @@
 
     <div class="editorial">
       <ul>
-        <li><strong>Extend <code>FaithfulnessEvaluator</code> with a "trace-aware" mode flag.</strong> Buries the failure class behind an option. Sibling evaluator costs 32 lines; mode-on-Faithfulness costs every Faithfulness user one more decision.</li>
-        <li><strong>Pure regex or span-graph walk, no LLM.</strong> v1 was this. Topped out at 13 of 16 with structural failures (date collisions, self-quoting corrections) that tighter regex can't fix. Ships as the pre-filter, not the primitive.</li>
+        <li><strong>Extend <code>FaithfulnessEvaluator</code> with a "trace-aware" mode flag.</strong> Buries the failure class behind an option. A sibling evaluator is one new file; mode-on-Faithfulness costs every Faithfulness user one more decision.</li>
+        <li><strong>Pure regex or span-graph walk, no LLM.</strong> v1 was this. Caught all 7 phantoms but logged 4 false positives in three structural classes (date collisions, self-quoting corrections, classifier context loss) that tighter regex can't fix. Ships as the pre-filter, not the primitive.</li>
         <li><strong>eBPF or agent-side runtime enforcement.</strong> Out of scope. That's an SDK plus runtime rewrite. Mentioned because it's the obvious "why not earlier in the stack" question.</li>
       </ul>
       <details style="margin-top: 16px;">
@@ -1056,7 +1055,7 @@
     <div class="editorial">
       <ul>
         <li><strong>Batch is shipped.</strong> The evaluator runs against the Phoenix workspace and the AX project as a Phoenix Experiment and an AX experiment, respectively. Verified scores in section 05.</li>
-        <li><strong>Runtime is shipped on AX.</strong> Registered the evaluator as a continuous online task (<code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code>). 11 of 24 live spans scored, zero errors. Future spans get scored automatically.</li>
+        <li><strong>Runtime is shipped on AX.</strong> Registered the evaluator as a continuous online task (<code>client.tasks.create(task_type='template_evaluation', is_continuous=True)</code>). 11 of 24 live spans scored, zero errors. The 13 skipped were agent-graph wrapper spans without an LLM-call input blob; the 11 are the assistant LLM calls the evaluator targets.</li>
         <li><strong>Alyx tool-call runtime is the unshipped one.</strong> Alyx today is a router (see <a href="feedback.html">/feedback</a>). Once Alyx tool-calls into the SDK on the user's behalf, Tool Bypass becomes the natural grounding gate. That's a product-roadmap question, not an eval question.</li>
       </ul>
     </div>
@@ -1080,10 +1079,6 @@
           <b>Compose with Handler Bypass.</b> Tool Bypass catches assertions without tool calls. Handler Bypass catches messages that never reach the LLM. Same taxonomy. Adding the sibling primitive and surfacing both as a pre-deploy gate is the next composition.
         </div>
       </div>
-    </div>
-
-    <div class="rm-aside" style="border-left-color: var(--accent);">
-      <b>The question I'd ask before committing.</b> Where does the eval team want this to live? The Phoenix fork is a feasibility check; the AX task is a working pilot. The product call is which becomes the template first.
     </div>
   </div>
 </section>
